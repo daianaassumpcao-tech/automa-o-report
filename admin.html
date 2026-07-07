@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Atualizar Dashboard Facilities</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="relatorios-core.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0e0a; --bg2:#13191a; --bg3:#1c2422; --bord:#2a3531;
+    --mid:#48a860; --green:#00ffa3; --olive:#7e8c54; --light:#b6bf9a;
+    --cream:#e4ebd0; --muted:#7e8c54;
+    --red:#d95f4b; --amber:#d4924a; --blue:#00D7FF;
+    --r:14px; --rs:8px;
+    --font:'DM Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{min-height:100%;background:var(--bg);color:var(--cream);font-family:var(--font);font-size:14px;line-height:1.5;}
+  body{padding:32px 20px 60px;}
+  .wrap{max-width:880px;margin:0 auto;}
+
+  header{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+  .logo{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--mid);text-transform:uppercase;}
+  .logo-icon{width:32px;height:32px;border-radius:7px;background:var(--mid);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--bg);}
+  .ttl{font-size:18px;font-weight:500;color:var(--cream);}
+  .sttl{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  .step{background:var(--bg2);border:1px solid var(--bord);border-radius:var(--r);padding:22px 24px;margin-bottom:14px;}
+  .step.active{border-color:var(--mid);}
+  .step.done{border-color:var(--bord);opacity:.7;}
+  .step-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--bg3);border:1px solid var(--bord);color:var(--muted);font-size:12px;font-weight:600;font-family:var(--mono);margin-right:10px;vertical-align:middle;}
+  .step.active .step-num{background:var(--mid);border-color:var(--mid);color:var(--bg);}
+  .step.done .step-num{background:var(--bord);color:var(--cream);}
+  .step h2{display:inline-block;font-size:15px;font-weight:500;color:var(--cream);vertical-align:middle;}
+  .step .body{margin-top:14px;padding-left:34px;}
+  .step p{font-size:13px;color:var(--light);margin-bottom:10px;}
+  .step .hint{font-size:12px;color:var(--muted);}
+
+  .drop{border:2px dashed var(--bord);border-radius:var(--rs);padding:36px 24px;text-align:center;cursor:pointer;transition:all .2s ease;background:var(--bg3);}
+  .drop:hover, .drop.dragover{border-color:var(--mid);background:rgba(72,168,96,.05);}
+  .drop-ico{font-size:32px;color:var(--muted);margin-bottom:8px;}
+  .drop strong{color:var(--cream);font-weight:500;}
+  .drop .small{font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--mono);}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;border:1px solid var(--bord);background:var(--bg3);color:var(--cream);cursor:pointer;font-family:var(--font);text-decoration:none;transition:all .2s;}
+  .btn:hover{border-color:var(--mid);}
+  .btn-primary{background:var(--mid);color:var(--bg);border-color:var(--mid);font-weight:600;}
+  .btn-primary:hover{background:var(--green);border-color:var(--green);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .preview{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .pframe{background:var(--bg);border:1px solid var(--bord);border-radius:var(--rs);overflow:hidden;height:280px;position:relative;}
+  .pframe iframe{width:100%;height:100%;border:0;transform:scale(.4);transform-origin:0 0;width:250%;height:250%;pointer-events:none;}
+  .pframe .label{position:absolute;top:8px;left:8px;background:var(--bg2);border:1px solid var(--bord);border-radius:5px;padding:3px 8px;font-size:10px;font-weight:600;color:var(--mid);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;z-index:2;}
+
+  .alert{background:rgba(217,95,75,.08);border:1px solid rgba(217,95,75,.3);border-left:3px solid var(--red);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:rgba(217,95,75,.95);margin-top:12px;font-family:var(--mono);white-space:pre-wrap;display:none;}
+  .ok{background:rgba(72,168,96,.08);border:1px solid rgba(72,168,96,.3);border-left:3px solid var(--mid);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--mid);margin-top:12px;display:none;}
+
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:14px;}
+
+  /* Step 3 — blocos de status editáveis */
+  #status-blocks{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+  .status-block{background:var(--bg3);border:1px solid var(--bord);border-radius:var(--rs);padding:14px 16px;}
+  .sb-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .sb-title{font-size:13px;font-weight:600;color:var(--cream);}
+  .sb-rel{font-weight:400;color:var(--muted);font-size:11px;}
+  .origem-badge{font-size:10px;padding:3px 8px;border-radius:5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
+  .origem-badge.auto{background:rgba(126,140,84,.15);color:var(--olive);border:1px solid rgba(126,140,84,.3);}
+  .origem-badge.manual{background:rgba(72,168,96,.12);color:var(--mid);border:1px solid rgba(72,168,96,.3);}
+  .origem-badge.edited{background:rgba(0,255,163,.12);color:var(--green);border:1px solid rgba(0,255,163,.3);}
+  .sb-titulo-input{width:100%;background:var(--bg);border:1px solid var(--bord);border-radius:5px;padding:7px 10px;color:var(--cream);font-family:var(--font);font-size:12px;font-weight:600;margin-bottom:6px;}
+  .sb-titulo-input:focus{outline:none;border-color:var(--mid);}
+  .sb-texto-input{width:100%;background:var(--bg);border:1px solid var(--bord);border-radius:5px;padding:8px 10px;color:var(--light);font-family:var(--font);font-size:12px;line-height:1.5;resize:vertical;}
+  .sb-texto-input:focus{outline:none;border-color:var(--mid);}
+  .scard{background:var(--bg3);border:1px solid var(--bord);border-radius:var(--rs);padding:10px 12px;}
+  .slbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+  .sval{font-size:18px;font-weight:300;font-family:var(--mono);color:var(--cream);}
+  .sub{font-size:10px;color:var(--muted);margin-top:1px;}
+
+  details{background:var(--bg3);border:1px solid var(--bord);border-radius:var(--rs);padding:10px 14px;margin-top:14px;}
+  details summary{cursor:pointer;font-size:12px;color:var(--olive);font-weight:500;}
+  details pre{margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--light);background:var(--bg);padding:10px;border-radius:5px;overflow:auto;max-height:300px;}
+
+  .footer{margin-top:32px;text-align:center;font-size:11px;color:var(--muted);}
+  .footer a{color:var(--olive);}
+
+  .nav-row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-left:34px;}
+
+
+/* ═══ ESTILOS DO RELATÓRIO PDF (Fase 3) — usados só dentro do container offscreen ═══ */
+.pdf-root{font-family:Arial,Helvetica,sans-serif;color:#e8e9ed;font-size:13px;line-height:1.4;background:#111417;}
+.pdf-page{width:794px;min-height:1123px;padding:34px 56px 28px 56px;background:#111417;display:flex;flex-direction:column;box-sizing:border-box;page-break-after:always;break-after:page;}
+.pdf-page:last-child{page-break-after:auto;break-after:auto;}
+.pdf-page *{box-sizing:border-box;}
+.pdf-header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:8px;margin-bottom:11px;}
+.pdf-header h1{font-size:13px;font-weight:600;color:#8a8f99;text-transform:uppercase;letter-spacing:.05em;}
+.pdf-header h1 .pagetag{font-weight:400;color:#5e636d;text-transform:none;letter-spacing:0;}
+.pdf-header .meta{text-align:right;font-size:11px;color:#5e636d;}
+.pdf-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:9px;}
+.pdf-kpi-grid.cols3{grid-template-columns:repeat(3,1fr);}
+.pdf-kpi-grid.cols2{grid-template-columns:repeat(2,1fr);}
+.pdf-kpi{border-radius:7px;padding:10px 12px;background:#1a1e23;}
+.pdf-kpi .lbl{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:#7c818c;font-weight:600;margin-bottom:6px;}
+.pdf-kpi .val{font-size:23px;font-weight:700;color:#eceef2;line-height:1.05;}
+.pdf-kpi .val .unit2{font-size:15px;font-weight:400;color:#8a8f99;}
+.pdf-kpi .val.unit{font-size:20px;}
+.pdf-kpi .val.green{color:#00ffa3;}
+.pdf-kpi .val.red{color:#e45252;}
+.pdf-kpi .val.amber{color:#ffb24d;}
+.pdf-kpi .sub{font-size:10px;color:#8a8f99;margin-top:6px;}
+.pdf-kpi .sub.dot{padding-left:15px;position:relative;}
+.pdf-kpi .sub.dot::before{content:'';width:7px;height:7px;border-radius:50%;position:absolute;left:0;top:3px;}
+.pdf-kpi .sub.dot.good{color:#00e08f;}
+.pdf-kpi .sub.dot.good::before{background:#00e08f;}
+.pdf-kpi .sub.dot.warn{color:#e45252;}
+.pdf-kpi .sub.dot.warn::before{background:#e45252;}
+.pdf-kpi .sub.dot.amber{color:#ffb24d;}
+.pdf-kpi .sub.dot.amber::before{background:#ffb24d;}
+.pdf-section-title{font-size:10px;font-weight:600;color:#7c818c;text-transform:uppercase;letter-spacing:.04em;margin:9px 0 6px;}
+.pdf-table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:8px;background:#1a1e23;border-radius:7px;overflow:hidden;}
+.pdf-table th{background:#22262c;color:#8a8f99;padding:5px 10px;text-align:left;font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:.03em;}
+.pdf-table td{padding:5px 10px;border-bottom:1px solid #22262c;color:#d5d7dc;}
+.pdf-table tr:last-child td{font-weight:700;background:#22262c;color:#eceef2;}
+.pdf-table tr:last-child td.pdf-status-ok{color:#00e08f;}
+.pdf-table tr:last-child td.pdf-status-warn{color:#e45252;}
+.pdf-status-ok{color:#00e08f!important;}
+.pdf-status-warn{color:#e45252!important;}
+.pdf-progress{background:#1a1e23;border-radius:7px;padding:11px 16px;margin-bottom:8px;}
+.pdf-prow{display:flex;align-items:center;gap:12px;padding:6px 0;font-size:10px;}
+.pdf-prow .plabel{width:175px;color:#aeb2bb;flex-shrink:0;}
+.pdf-ptrack{flex:1;height:11px;background:#22262c;border-radius:5px;overflow:hidden;position:relative;}
+.pdf-pfill{height:100%;border-radius:5px;}
+.pdf-pval{width:120px;text-align:right;color:#eceef2;font-weight:600;flex-shrink:0;}
+.pdf-status-areas{margin-top:24px;}
+.pdf-highlight{border:1px solid #1f4d36;background:#0f2318;border-radius:8px;padding:10px 15px;margin-bottom:12px;font-size:11px;font-weight:600;color:#5fe3ab;}
+.pdf-status-block{display:flex;gap:12px;margin-bottom:10px;}
+.pdf-status-block .sdot{width:8px;height:8px;border-radius:50%;background:#5e636d;margin-top:6px;flex-shrink:0;}
+.pdf-status-block .st-title{font-size:11px;font-weight:700;color:#eceef2;margin-bottom:3px;}
+.pdf-status-block .st-text{font-size:10.5px;color:#aeb2bb;line-height:1.45;}
+.pdf-footnote{background:#2d1515;border:1px solid #5a2424;border-radius:8px;padding:10px 15px;font-size:10px;color:#f08a8a;margin-top:11px;line-height:1.4;}
+.pdf-footer-bar{display:flex;justify-content:space-between;font-size:9.5px;color:#4a4e57;margin-top:auto;padding-top:14px;}
+.pdf-list{background:#1a1e23;border-radius:7px;padding:4px 16px;margin-bottom:8px;}
+.pdf-list .lrow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #22262c;font-size:10px;color:#aeb2bb;}
+.pdf-list .lrow:last-child{border-bottom:none;}
+.pdf-list .lrow span:last-child{color:#eceef2;}
+.pdf-list .lrow .amber{color:#ffb24d!important;font-weight:600;}
+
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo"><div class="logo-icon">✦</div>hype</div>
+    <div style="width:1px;height:32px;background:var(--bord)"></div>
+    <div>
+      <div class="ttl">Atualizar Dashboard — Facilities</div>
+      <div class="sttl">Ferramenta de admin · gere o pacote pronto pra deploy no Netlify · <strong style="color:var(--green)">build 22/06-b (PDF corrigido, página a página)</strong></div>
+    </div>
+  </header>
+
+  <!-- STEP 1 -->
+  <div class="step active" id="step1">
+    <div><span class="step-num">1</span><h2>Carregue a base do mês</h2></div>
+    <div class="body">
+      <p>Use o template <strong>dashboard_facilities.xlsx</strong> e arraste aqui.</p>
+      <div class="drop" id="drop">
+        <div class="drop-ico">⬆</div>
+        <strong>Arraste o .xlsx aqui</strong> ou <a href="#" id="pick" style="color:var(--mid)">clique para selecionar</a>
+        <div class="small">.xlsx · .xls · .csv</div>
+        <input type="file" id="file" accept=".xlsx,.xls,.csv" style="display:none">
+      </div>
+      <div class="alert" id="err1"></div>
+      <div class="ok" id="ok1"></div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="step2">
+    <div><span class="step-num">2</span><h2>Confira o resumo</h2></div>
+    <div class="body">
+      <p>Bata o olho nos números antes de gerar o pacote.</p>
+      <div class="summary" id="summary"></div>
+      <details><summary>Ver JSON completo</summary><pre id="jsonview"></pre></details>
+      <div class="preview" id="preview" style="display:none">
+        <div class="pframe"><div class="label">Comercial</div><iframe id="prev-com"></iframe></div>
+        <div class="pframe"><div class="label">Operacional</div><iframe id="prev-ope"></iframe></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: RELATÓRIO PDF -->
+  <div class="step" id="step3">
+    <div><span class="step-num">3</span><h2>Revise os textos e gere o relatório PDF</h2></div>
+    <div class="body">
+      <p>Rascunhos gerados a partir dos números. Revise e edite antes de exportar — o que estiver aqui vai direto pro PDF.</p>
+      <div id="status-blocks"></div>
+      <button class="btn btn-primary" id="generatePdf" disabled style="margin-top:14px">🖨️ Gerar PDFs (Comercial + Operacional)</button>
+      <p style="font-size:12px;color:#7c818c;margin-top:6px;">Abre a caixa de impressão do navegador duas vezes (uma por relatório). Escolha "Salvar como PDF" como destino. Funciona melhor no Chrome ou Edge.</p>
+      <div class="alert" id="errPdf"></div>
+      <div class="ok" id="okPdf"></div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step" id="step4">
+    <div><span class="step-num">4</span><h2>Baixe o pacote e suba no Netlify</h2></div>
+    <div class="body">
+      <p>O zip contém todos os arquivos do site com os dados do mês embutidos. Arraste o zip em <strong>app.netlify.com → seu site → Deploys</strong> (área "Drag and drop your site folder here").</p>
+      <button class="btn btn-primary" id="generate" disabled>↓ Gerar e baixar dashboard.zip</button>
+      <div class="alert" id="err3"></div>
+      <div class="ok" id="ok3"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Ainda não tem o template? <a id="dl-template" href="#">Baixar template_dados.xlsx</a>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ESTADO
+   ═══════════════════════════════════════════════════════════════ */
+const state = { dados: null, comercialHtml: null, operacionalHtml: null, statusTextos: {} };
+
+/* CSS dos relatórios PDF, embutido como string pra injetar no iframe de impressão
+   (o iframe é um documento separado — não herda o <style> da página admin). */
+
+const $ = id => document.getElementById(id);
+const showErr = (id,msg)=>{const e=$(id);e.textContent=msg;e.style.display='block';};
+const hideErr = id=>{$(id).style.display='none';};
+const showOk = (id,msg)=>{const e=$(id);e.textContent=msg;e.style.display='block';};
+
+/* ═══════════════════════════════════════════════════════════════
+   PARSER DO EXCEL → JSON
+   ═══════════════════════════════════════════════════════════════ */
+// normaliza: tira acento, caixa, espaços, _ e - → comparação tolerante
+
+function parseExcel(file){
+  // Lê o arquivo via FileReader (browser-only) e delega a montagem dos dados
+  // pra montarDadosDeWorkbook() — função pura de relatorios-core.js,
+  // a mesma usada pelo script Node de automação.
+  return new Promise((res,rej)=>{
+    const reader = new FileReader();
+    reader.onerror = ()=>rej(new Error('Falha ao ler arquivo'));
+    reader.onload = (e)=>{
+      try{
+        const wb = XLSX.read(e.target.result,{type:'array'});
+        res(montarDadosDeWorkbook(wb));
+      }catch(err){ rej(err); }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function renderSummary(dados){
+  const m = dados.operacional.manutencao;
+  const v = dados.operacional.viagens;
+  const c = dados.comercial;
+  const tLeads = c.leads_mensal.reduce((s,x)=>s+x.atendidos,0);
+  const tConv = c.leads_mensal.reduce((s,x)=>s+x.convertidos,0);
+  const tx = tLeads>0 ? ((tConv/tLeads)*100).toFixed(0) : '—';
+  const slaM = (m.encerrados_no_prazo+m.encerrados_atrasados)>0 ? ((m.encerrados_no_prazo/(m.encerrados_no_prazo+m.encerrados_atrasados))*100).toFixed(1) : '—';
+  const slaV = v.concluidos_avaliados>0 ? ((v.concluidos_no_prazo/v.concluidos_avaliados)*100).toFixed(1) : '—';
+
+  const cards = [
+    ['Período', dados.operacional.config.periodo, ''],
+    ['Manut. Total', m.encerrados_no_prazo+m.encerrados_atrasados+m.abertos_no_prazo+m.abertos_atrasados, `SLA ${slaM}%`],
+    ['Viagens Total', v.total, `SLA ${slaV}%`],
+    ['Leads', tLeads, `Conv. ${tx}%`],
+    ['Vendedores', c.vendedores.length, c.vendedores.map(x=>x.nome).join(', ')],
+    ['Ocupação', c.config.ocupacao_atual+'%', `meta ${c.config.meta_ocupacao}%`],
+    ['Faturamento', 'R$'+Number(c.config.faturamento_atual).toLocaleString('pt-BR'), `meta R$${Number(c.config.meta_faturamento_mensal).toLocaleString('pt-BR')}`],
+    ['Novos contratos', c.config.novos_contratos, c.config.destaque_contrato]
+  ];
+  $('summary').innerHTML = cards.map(([l,v,s])=>`
+    <div class="scard"><div class="slbl">${l}</div><div class="sval">${v}</div><div class="sub">${s}</div></div>`).join('');
+  $('jsonview').textContent = JSON.stringify(dados, null, 2);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STEP 3 — RASCUNHOS DE TEXTO (Status das Áreas) — Fase 2
+   ═══════════════════════════════════════════════════════════════ */
+const BLOCO_LABELS = {
+  conversao: {emoji:'📊', nome:'Conversão', relatorio:'Comercial'},
+  faturamento: {emoji:'💰', nome:'Faturamento', relatorio:'Comercial'},
+  leads: {emoji:'📈', nome:'Leads', relatorio:'Comercial'},
+  ocupacao: {emoji:'🏢', nome:'Ocupação', relatorio:'Comercial'},
+  vendedores: {emoji:'🧑‍💼', nome:'Vendedores', relatorio:'Comercial'},
+  desfalque: {emoji:'⚠️', nome:'Desfalque', relatorio:'Comercial + Operacional'},
+  custo_operacional: {emoji:'🔧', nome:'Custo Operacional', relatorio:'Operacional'},
+  manutencao: {emoji:'🛠️', nome:'Manutenção', relatorio:'Operacional'},
+  viagens: {emoji:'🚗', nome:'Viagens', relatorio:'Operacional'}
+};
+
+function renderStatusBlocks(dados){
+  const rascunhos = gerarRascunhosStatus(dados);
+  state.statusTextos = {}; // guarda o texto atual (editado ou não) de cada bloco
+
+  const html = Object.entries(rascunhos).map(([chave, bloco])=>{
+    const meta = BLOCO_LABELS[chave] || {emoji:'•', nome:chave, relatorio:''};
+    state.statusTextos[chave] = {titulo: bloco.titulo, texto: bloco.texto};
+    const badge = bloco.origem === 'manual'
+      ? `<span class="origem-badge manual">da planilha</span>`
+      : `<span class="origem-badge auto">rascunho automático</span>`;
+    return `
+      <div class="status-block" data-bloco="${chave}">
+        <div class="sb-head">
+          <span class="sb-title">${meta.emoji} ${meta.nome} <span class="sb-rel">— ${meta.relatorio}</span></span>
+          ${badge}
+        </div>
+        <input type="text" class="sb-titulo-input" data-field="titulo" value="${bloco.titulo.replace(/"/g,'&quot;')}">
+        <textarea class="sb-texto-input" data-field="texto" rows="3">${bloco.texto}</textarea>
+      </div>`;
+  }).join('');
+
+  $('status-blocks').innerHTML = html;
+
+  // listeners: qualquer edição atualiza state.statusTextos e marca como editado
+  document.querySelectorAll('.status-block').forEach(block=>{
+    const chave = block.dataset.bloco;
+    block.querySelectorAll('[data-field]').forEach(input=>{
+      input.addEventListener('input', ()=>{
+        state.statusTextos[chave][input.dataset.field] = input.value;
+        const badge = block.querySelector('.origem-badge');
+        badge.textContent = 'editado por você';
+        badge.className = 'origem-badge edited';
+      });
+    });
+  });
+}
+
+async function loadTemplates(){
+  const [r1,r2] = await Promise.all([
+    fetch('comercial.html').then(r=>r.text()),
+    fetch('operacional.html').then(r=>r.text())
+  ]);
+  state.comercialHtml = r1;
+  state.operacionalHtml = r2;
+}
+
+function injectData(html, json){
+  // substitui o bloco de dados embutidos no template
+  const re = /(<script id="dados-embutidos" type="application\/json">)([\s\S]*?)(<\/script>)/;
+  if(!re.test(html)) throw new Error('Bloco de dados embutidos não encontrado no template');
+  return html.replace(re, (_,a,_b,c)=>`${a}\n${JSON.stringify(json,null,2)}\n${c}`);
+}
+
+async function renderPreview(dados){
+  if(!state.comercialHtml || !state.operacionalHtml){
+    try{ await loadTemplates(); }
+    catch(e){
+      $('preview').style.display='none';
+      return; // sem preview, mas summary continua funcionando
+    }
+  }
+  // A planilha já foi validada. Uma falha aqui é problema do TEMPLATE publicado,
+  // não da planilha — então isolamos por arquivo e não bloqueamos o fluxo.
+  let comNova, opeNova;
+  try{ comNova = injectData(state.comercialHtml, dados.comercial); }
+  catch(e){ avisaTemplate('comercial.html'); return; }
+  try{ opeNova = injectData(state.operacionalHtml, dados.operacional); }
+  catch(e){ avisaTemplate('operacional.html'); return; }
+  $('preview').style.display='grid';
+  $('prev-com').srcdoc = comNova;
+  $('prev-ope').srcdoc = opeNova;
+}
+
+function avisaTemplate(arquivo){
+  $('preview').style.display='none';
+  showErr('err1',
+    `A planilha está OK e foi processada — o problema NÃO é a planilha.\n\n`+
+    `O arquivo "${arquivo}" que está publicado no Netlify não é a versão dirigida por dados `+
+    `(falta o bloco de dados embutidos). Publique a versão nova de ${arquivo} e tente de novo. `+
+    `O preview fica indisponível até lá.`);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOTOR DE PDF — Fase 3
+   Monta o HTML (tema dark) de cada relatório a partir de state.dados
+   e state.statusTextos (Fase 2), renderiza offscreen e exporta via
+   html2pdf.js (html2canvas + jsPDF). Baixa os 2 arquivos direto,
+   sem preview, com nome incluindo o período da planilha.
+   ═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   MOTOR DE PDF — Fase 3
+   Monta o HTML (tema dark) de cada relatório a partir de state.dados
+   (operacional/comercial/desfalque/orcamento) e state.statusTextos
+   (Fase 2). Renderizado via html2pdf.js (html2canvas + jsPDF).
+   ═══════════════════════════════════════════════════════════════ */
+
+function textosParaPdf(){
+  const out = {};
+  for(const [chave, v] of Object.entries(state.statusTextos||{})){
+    out[chave] = {titulo: v.titulo, texto: v.texto};
+  }
+  return out;
+}
+
+// Sanitiza o período pra usar no nome do arquivo (sem acentos/espaços/símbolos)
+// com grid). A pessoa escolhe "Salvar como PDF" como destino na caixa de
+// impressão do sistema; o nome sugerido do arquivo vem do <title> do documento.
+function imprimirComoPdf(innerHtml, tituloDocumento){
+  return new Promise((resolve, reject)=>{
+    const iframe = document.createElement('iframe');
+    // fora da tela, mas NÃO display:none — alguns navegadores não imprimem
+    // iframes com display:none.
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.visibility = 'hidden';
+    document.body.appendChild(iframe);
+
+    let liberado = false;
+    function liberar(){
+      if(liberado) return;
+      liberado = true;
+      try{ iframe.contentWindow.removeEventListener('afterprint', aoTerminar); }catch(e){}
+      if(iframe.parentNode) document.body.removeChild(iframe);
+      resolve();
+    }
+    function aoTerminar(){ liberar(); }
+
+    iframe.onload = () => {
+      // pequena espera garante que o layout aplicou antes de abrir a caixa de impressão
+      setTimeout(()=>{
+        try{
+          iframe.contentWindow.focus();
+          iframe.contentWindow.addEventListener('afterprint', aoTerminar, {once:true});
+          iframe.contentWindow.print();
+          // 'afterprint' não dispara em 100% dos navegadores neste cenário —
+          // garante a limpeza do iframe mesmo assim, depois de um tempo razoável.
+          setTimeout(liberar, 5000);
+        }catch(err){
+          liberar();
+          reject(err);
+        }
+      }, 150);
+    };
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${tituloDocumento}</title><style>${PDF_CSS}</style></head><body><div class="pdf-root">${innerHtml}</div></body></html>`);
+    doc.close();
+  });
+}
+
+async function generatePdfs(dados){
+  if(!dados){ showErr('errPdf','Carregue a base primeiro.'); return; }
+  if(!dados.desfalque || !dados.orcamento){
+    showErr('errPdf','Faltam dados de Desfalque/Orçamento na planilha. Preencha essas abas (opcionais) no template_dados.xlsx antes de gerar o PDF.');
+    return;
+  }
+  hideErr('errPdf'); $('okPdf').style.display='none';
+
+  const btn = $('generatePdf');
+  const textoOriginalBtn = btn.textContent;
+  btn.disabled = true;
+
+  try{
+    const textos = textosParaPdf();
+    const periodo = slugPeriodo(dados.comercial.config.mes_referencia || dados.operacional.config.periodo);
+
+    btn.textContent = '🖨️ Comercial: escolha "Salvar como PDF"...';
+    const comHtml = buildComercialPdfHtml(dados, textos);
+    await imprimirComoPdf(comHtml, `Relatorio_Comercial_${periodo}`);
+
+    btn.textContent = '🖨️ Operacional: escolha "Salvar como PDF"...';
+    const opeHtml = buildOperacionalPdfHtml(dados, textos);
+    await imprimirComoPdf(opeHtml, `Relatorio_Operacional_${periodo}`);
+
+    showOk('okPdf', `✓ Duas caixas de impressão foram abertas, uma para cada relatório. Em cada uma, escolha "Salvar como PDF" (ou "Microsoft Print to PDF") como destino — o nome sugerido já vem como Relatorio_Comercial_${periodo} e Relatorio_Operacional_${periodo}.`);
+  }catch(e){
+    showErr('errPdf', 'Erro ao preparar a impressão: ' + e.message);
+  }finally{
+    btn.disabled = false; btn.textContent = textoOriginalBtn;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GERAR E BAIXAR ZIP
+   ═══════════════════════════════════════════════════════════════ */
+async function generateZip(){
+  if(!state.dados){ showErr('err3','Carregue a base primeiro.'); return; }
+  if(!state.comercialHtml || !state.operacionalHtml){
+    try{ await loadTemplates(); }
+    catch(e){ showErr('err3','Não consegui ler comercial.html / operacional.html. Abra esta página através do site publicado (ex: seusite.netlify.app/admin.html).'); return; }
+  }
+  hideErr('err3');
+  try{
+    const com = injectData(state.comercialHtml, state.dados.comercial);
+    const ope = injectData(state.operacionalHtml, state.dados.operacional);
+    const idx = await fetch('index.html').then(r=>r.text()).catch(()=>`<!DOCTYPE html><meta http-equiv="refresh" content="0; url=comercial.html">`);
+    const adm = await fetch('admin.html').then(r=>r.text()).catch(()=>null);
+
+    const zip = new JSZip();
+    zip.file('index.html', idx);
+    zip.file('comercial.html', com);
+    zip.file('operacional.html', ope);
+    if(adm) zip.file('admin.html', adm);
+
+    const blob = await zip.generateAsync({type:'blob'});
+    const periodo = (state.dados.operacional.config.periodo||'atualizado').replace(/[^a-z0-9_-]/gi,'_');
+    const fn = `dashboard_${periodo}.zip`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fn; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    showOk('ok3', `Pacote gerado: ${fn}. Arraste no Netlify Deploys.`);
+  }catch(e){
+    const msg = /bloco de dados embutidos/i.test(e.message)
+      ? 'O template publicado (comercial.html ou operacional.html) não está na versão dirigida por dados — falta o bloco de dados embutidos. Publique as versões novas dos dois arquivos e tente de novo.'
+      : ('Erro ao gerar zip: ' + e.message);
+    showErr('err3', msg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UI: drag-drop + handlers
+   ═══════════════════════════════════════════════════════════════ */
+const drop = $('drop');
+const fileInput = $('file');
+
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev, e=>{e.preventDefault();drop.classList.add('dragover');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev, e=>{e.preventDefault();drop.classList.remove('dragover');}));
+drop.addEventListener('drop', e=>{ if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+drop.addEventListener('click', ()=>fileInput.click());
+$('pick').addEventListener('click', e=>{e.preventDefault();fileInput.click();});
+fileInput.addEventListener('change', e=>{ if(e.target.files.length) handleFile(e.target.files[0]); });
+
+async function handleFile(file){
+  hideErr('err1');
+  $('ok1').style.display='none';
+  try{
+    const dados = await parseExcel(file);
+    state.dados = dados;
+    showOk('ok1', `✓ ${file.name} processado.`);
+    $('step1').classList.remove('active'); $('step1').classList.add('done');
+    $('step2').classList.add('active');
+    $('step3').classList.add('active');
+    $('step4').classList.add('active');
+    $('generate').disabled = false;
+    $('generatePdf').disabled = false;
+    renderSummary(dados);
+    renderPreview(dados);
+    renderStatusBlocks(dados);
+  }catch(e){
+    showErr('err1', 'Erro ao LER a planilha: ' + e.message + '\n\nConfira as abas obrigatórias (Configuracao, Manutencao_KPIs, Manutencao_Niveis, Viagens_KPIs, Viagens_Evolucao, Leads_Mensal, Vendedores, Funil) e os cabeçalhos das colunas. As abas Desfalque, Orcamento e Status_Areas são opcionais (alimentam o relatório PDF).');
+  }
+}
+
+$('generate').addEventListener('click', generateZip);
+$('generatePdf').addEventListener('click', ()=>generatePdfs(state.dados));
+
+// Tenta pré-carregar templates pra validar o ambiente
+loadTemplates().catch(()=>{
+  // Provavelmente abrindo em file://. Vai dar erro só na hora de gerar.
+});
+
+// Link pro template (gera dinamicamente um link que aponta pro arquivo se existir)
+$('dl-template').addEventListener('click', e=>{
+  e.preventDefault();
+  // Tenta fazer download direto
+  const a=document.createElement('a');a.href='template_dados.xlsx';a.download='template_dados.xlsx';a.click();
+});
+</script>
+</body>
+</html>
+                                          

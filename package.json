@@ -1,0 +1,17 @@
+{
+  "name": "dashboard-facilities-hype",
+  "version": "1.0.0",
+  "description": "Dashboard Facilities — Hype Coworking. Geração automática de relatórios PDF.",
+  "main": "relatorios-core.js",
+  "scripts": {
+    "gerar": "node scripts/gerar-relatorios.js",
+    "gerar:local": "CHROMIUM_BIN=$(find ~/.cache/puppeteer -name chrome-headless-shell 2>/dev/null | head -1) node scripts/gerar-relatorios.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "xlsx": "^0.18.5",
+    "playwright": "^1.61.1"
+  }
+}

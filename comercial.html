@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facilities Comercial — Casa Barigui</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0e110d; --bg2:#161a14; --bg3:#1e2419; --bg4:#252e1e;
+    --bord:#2e3628;
+    --mid:#48a860; --olive:#7e8c54; --light:#b6bf9a;
+    --cream:#e4ebd0; --muted:#7e8c54;
+    --red:#d95f4b; --amber:#d4924a;
+    --r:10px; --rl:16px;
+    --font:'DM Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--cream);font-family:var(--font);}
+  .shell{width:100vw;height:100vh;display:grid;grid-template-rows:56px 1fr;padding:12px;gap:10px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--bord);border-radius:var(--r);padding:0 20px;}
+  .hl{display:flex;align-items:center;gap:14px;}
+  .logo{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--mid);text-transform:uppercase;}
+  .logo-icon{width:28px;height:28px;border-radius:6px;background:var(--mid);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--bg);}
+  .htitle{font-size:15px;font-weight:500;color:var(--cream);}
+  .hsub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .hr{display:flex;align-items:center;gap:10px;}
+  .bdg{font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;background:var(--bg3);border:1px solid var(--bord);color:var(--light);font-family:var(--mono);}
+  .bdg-g{background:rgba(72,168,96,.15);border-color:rgba(72,168,96,.3);color:var(--mid);}
+  .nav{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:5px 14px;border-radius:6px;border:1px solid var(--bord);background:var(--bg3);cursor:pointer;}
+  .nav:hover{color:var(--mid);border-color:var(--mid);}
+  .upd{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--mono);padding:3px 10px;border-radius:20px;border:1px solid var(--bord);background:var(--bg3);cursor:default;position:relative;}
+  .upd:hover .upd-tip{display:block;}
+  .upd-tip{display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--bg3);border:1px solid var(--bord);border-radius:6px;padding:5px 10px;font-size:10px;color:var(--cream);white-space:nowrap;z-index:10;}
+  .upd-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+
+  .main{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;grid-template-rows:96px 1fr 1fr;gap:10px;min-height:0;}
+
+  .card{background:var(--bg2);border:1px solid var(--bord);border-radius:var(--rl);padding:14px 18px;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative;transition:border-color .25s ease, transform .25s ease;}
+  .card:hover{border-color:var(--olive);transform:translateY(-1px);}
+  .acc{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--rl) var(--rl) 0 0;}
+  .a-g{background:var(--mid);}.a-o{background:var(--olive);}.a-r{background:var(--red);}.a-a{background:var(--amber);}.a-c{background:var(--cream);}
+
+  .klbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .kval{font-size:40px;font-weight:300;line-height:1;font-family:var(--mono);margin-bottom:3px;}
+  .ksub{font-size:12px;color:var(--light);}
+  .ktr{margin-top:auto;padding-top:6px;font-size:12px;font-weight:500;}
+  .g{color:var(--mid);}.o{color:var(--olive);}.r{color:var(--red);}.a{color:var(--amber);}.c{color:var(--cream);}.m{color:var(--muted);}
+
+  .stitle{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;flex-shrink:0;}
+  .smeta{font-size:10px;color:var(--olive);margin-left:6px;font-style:italic;text-transform:none;letter-spacing:0;}
+  .chwrap{flex:1;min-height:0;position:relative;}
+
+  .bars-pair{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;}
+  .bar-block{display:flex;flex-direction:column;justify-content:space-around;}
+  .bbar-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+  .bbar-lbl{font-size:12px;color:var(--light);}
+  .bbar-val{font-size:13px;font-weight:600;color:var(--cream);font-family:var(--mono);}
+  .bbar-track{height:26px;background:var(--bg3);border-radius:5px;overflow:hidden;position:relative;}
+  .bbar-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:9px;font-size:12px;font-weight:600;color:var(--bg);transition:width .8s ease;}
+  .bbar-fill.stripe{background-image:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,.15) 4px,rgba(0,0,0,.15) 8px);}
+  .bbar-target{position:absolute;top:0;bottom:0;width:2px;background:rgba(228,235,208,.4);}
+  .bbar-foot{font-size:10px;color:var(--muted);margin-top:3px;}
+  .bbar-callout{background:var(--bg3);border-radius:6px;padding:7px 10px;border-left:3px solid var(--olive);margin-top:8px;flex-shrink:0;}
+  .bbar-callout-val{font-size:18px;font-weight:300;font-family:var(--mono);color:var(--cream);line-height:1.1;}
+  .bbar-callout-lbl{font-size:10px;color:var(--muted);margin-bottom:3px;}
+  .bbar-callout-sub{font-size:10px;color:var(--olive);margin-top:2px;}
+
+  .donuts-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0;}
+  .donut-block{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+  .donut-sub-title{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;flex-shrink:0;}
+  .dwrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;min-height:0;overflow:hidden;}
+  .donut-fit{position:relative;width:min(100%,15vmin);height:min(100%,15vmin);flex-shrink:0;}
+  .donut-fit canvas{width:100%!important;height:100%!important;display:block;}
+  .dcenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;}
+  .dpct{font-size:24px;font-weight:300;font-family:var(--mono);line-height:1;}
+  .dlbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+  .dmeta{font-size:11px;color:var(--light);margin-top:6px;text-align:center;flex-shrink:0;}
+
+  .vgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;}
+  .vcard{background:var(--bg3);border:1px solid var(--bord);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+  .vacc{position:absolute;top:0;left:0;bottom:0;width:3px;border-radius:var(--r) 0 0 var(--r);}
+  .vname{font-size:15px;font-weight:600;color:var(--cream);margin-bottom:10px;padding-left:10px;}
+  .vstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 12px;padding-left:10px;}
+  .vslab{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:3px;}
+  .vsval{font-size:20px;font-weight:300;font-family:var(--mono);line-height:1;}
+  .vssub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .vbar{padding-left:10px;margin-top:10px;}
+  .vbarlbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .vtrack{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
+  .vfill{height:100%;border-radius:3px;transition:width .8s ease;}
+
+  .frow{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+  .frow:last-child{margin-bottom:0;}
+  .flbl{font-size:12px;color:var(--light);width:120px;flex-shrink:0;}
+  .ftrack{flex:1;height:20px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+  .ffill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:var(--bg);transition:width .8s ease;}
+  .fnum{font-size:13px;font-weight:600;color:var(--cream);font-family:var(--mono);width:30px;text-align:right;flex-shrink:0;}
+
+  .callout{grid-column:span 4;background:rgba(72,168,96,.08);border:1px solid rgba(72,168,96,.2);border-radius:var(--r);padding:9px 16px;font-size:12px;color:var(--olive);display:flex;align-items:center;gap:10px;}
+
+  /* Admin */
+  #admin-bar{position:fixed;bottom:14px;right:14px;z-index:999;background:var(--bg2);border:1px solid var(--bord);border-radius:var(--r);padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;align-items:center;gap:10px;font-size:11px;}
+  #admin-bar.show{display:flex;}
+  #admin-bar .badge{font-size:9px;padding:2px 7px;border-radius:10px;background:var(--mid);color:var(--bg);font-weight:600;letter-spacing:.05em;}
+  #admin-bar a{color:var(--mid);text-decoration:none;border-bottom:1px dashed var(--mid);}
+</style>
+</head>
+<body>
+
+<!-- ┌──────────────────────────────────────────────────────────────┐
+     │  DADOS — substituídos a cada deploy pelo admin.html          │
+     │  NÃO ALTERAR MANUALMENTE                                      │
+     └──────────────────────────────────────────────────────────────┘ -->
+<script id="dados-embutidos" type="application/json">
+{
+  "operacional": {
+    "config": {
+      "periodo": "Apr-26",
+      "ultima_atualizacao": "4/28/26",
+      "meta_sla_manutencao": 90,
+      "meta_sla_viagens": 90
+    },
+    "manutencao": {
+      "encerrados_no_prazo": 83,
+      "encerrados_atrasados": 8,
+      "abertos_no_prazo": 7,
+      "abertos_atrasados": 2,
+      "niveis": [
+        {
+          "nivel": "N1",
+          "prazo_du": 2,
+          "encerrados_total": 53,
+          "encerrados_no_prazo": 46
+        },
+        {
+          "nivel": "N2",
+          "prazo_du": 7,
+          "encerrados_total": 24,
+          "encerrados_no_prazo": 18
+        },
+        {
+          "nivel": "N3",
+          "prazo_du": 20,
+          "encerrados_total": 6,
+          "encerrados_no_prazo": 1
+        }
+      ]
+    },
+    "viagens": {
+      "total": 31,
+      "concluidos": 29,
+      "cancelados": 2,
+      "atrasados_encerrados": 2,
+      "atrasados_abertos": 0,
+      "concluidos_no_prazo": 29,
+      "concluidos_avaliados": 29,
+      "sem_data_encerramento": 0,
+      "evolucao": [
+        {
+          "mes": "Jan",
+          "total": 3,
+          "no_prazo": 3
+        },
+        {
+          "mes": "Fev",
+          "total": 8,
+          "no_prazo": 7
+        },
+        {
+          "mes": "Mar",
+          "total": 9,
+          "no_prazo": 9
+        },
+        {
+          "mes": "Abril",
+          "total": 7,
+          "no_prazo": 7
+        },
+        {
+          "mes": "Maio",
+          "total": 2,
+          "no_prazo": 1
+        }
+      ]
+    }
+  },
+  "comercial": {
+    "config": {
+      "periodo_titulo": "Acumulado Jan–Abri 2026",
+      "mes_referencia": "Apr-26",
+      "ultima_atualizacao": "4/28/26",
+      "meta_conversao": 15,
+      "meta_ocupacao": 80,
+      "meta_leads_anuais": 200,
+      "meta_faturamento_mensal": 28000,
+      "ocupacao_atual": 83,
+      "ocupacao_previsao_dez": 53,
+      "faturamento_atual": 36375,
+      "novos_contratos": 4,
+      "destaque_contrato": "★ Abril: 3 sala privativa",
+      "subtitulo_contratos": "+5 contrato & 2 renovações",
+      "callout": "Maio: +6 salas novas locadas. +2 renovações de contrato.Conversão (35%) acima da meta mínima (15%). Ocupação atual 83% "
+    },
+    "leads_mensal": [
+      {
+        "mes": "Janeiro",
+        "atendidos": 9,
+        "convertidos": 3
+      },
+      {
+        "mes": "Fevereiro",
+        "atendidos": 10,
+        "convertidos": 5
+      },
+      {
+        "mes": "Março",
+        "atendidos": 17,
+        "convertidos": 4
+      },
+      {
+        "mes": "Abril",
+        "atendidos": 8,
+        "convertidos": 2
+      },
+      {
+        "mes": "Maio",
+        "atendidos": 5,
+        "convertidos": 2
+      }
+    ],
+    "vendedores": [
+      {
+        "nome": "Daiana",
+        "cor": "mid",
+        "contratos": 17,
+        "receita_anualizada": 48937,
+        "leads_atendidos": 34,
+        "convertidos": 0
+      },
+      {
+        "nome": "Roberta",
+        "cor": "olive",
+        "contratos": 1,
+        "receita_anualizada": 0,
+        "leads_atendidos": 18,
+        "convertidos": 1
+      }
+    ],
+    "funil": {
+      "leads_atendidos": 53,
+      "em_aberto": 0,
+      "convertidos": 17,
+      "churned": 0
+    }
+  },
+  "desfalque": {
+    "contratos": [
+      {
+        "tipo": "contrato",
+        "nome": "Zeno",
+        "desfalque_mensal": 3555,
+        "desfalque_anual": 42600,
+        "observacao": "Contrato com valor abaixo do praticado"
+      },
+      {
+        "tipo": "contrato",
+        "nome": "Caplink + Leandro",
+        "desfalque_mensal": 3000,
+        "desfalque_anual": 36000,
+        "observacao": "Dois contratos agrupados"
+      }
+    ],
+    "posicoes_individuais": [
+      {
+        "tipo": "posicao_individual",
+        "nome": "Michele",
+        "desfalque_mensal": 60,
+        "desfalque_anual": 720,
+        "observacao": "Ativo"
+      },
+      {
+        "tipo": "posicao_individual",
+        "nome": "Paula",
+        "desfalque_mensal": 40,
+        "desfalque_anual": 480,
+        "observacao": "Ativo"
+      }
+    ],
+    "total_mensal": 6655,
+    "total_anual": 79800
+  },
+  "orcamento": {
+    "realizado_mes": 66700,
+    "orcado_mes": 69400,
+    "inicial_mes": 79400,
+    "anual": 832000,
+    "consumo_acumulado_valor": 79200,
+    "consumo_acumulado_esperado_pct": 33,
+    "custo_total_mes": 781.44,
+    "mao_obra_mes": 524.09,
+    "material_mes": 257.35,
+    "cards_custo_concluidos": 10
+  },
+  "statusAreasManual": {}
+}
+</script>
+
+<div class="shell">
+  <header>
+    <div class="hl">
+      <div class="logo"><div class="logo-icon">✦</div>hype</div>
+      <div style="width:1px;height:24px;background:var(--bord)"></div>
+      <div>
+        <div class="htitle">Facilities Comercial — Coworking Casa Barigui</div>
+        <div class="hsub" id="h-periodo">—</div>
+      </div>
+    </div>
+    <div class="hr">
+      <span class="bdg" id="h-mes">—</span>
+      <div class="upd">
+        <div class="upd-dot"></div>
+        Atualizado: <span id="h-update">—</span>
+        <div class="upd-tip">Última atualização: <span id="h-update-full">—</span></div>
+      </div>
+      <span class="bdg bdg-g">● Comercial</span>
+      <a class='nav' href='/operacional'>→ Operacional</a>
+      <a class='nav' href='/admin'>↻ Atualizar Dados</a>
+    </div>
+  </header>
+
+  <div class="main">
+
+    <!-- ROW 1: 4 KPIs -->
+    <div class="card"><div class="acc a-o"></div>
+      <div class="klbl">Leads Atendidos</div>
+      <div class="kval c" id="k-leads">—</div>
+      <div class="ksub" id="k-leads-sub">—</div>
+      <div class="ktr c" id="k-leads-trend">—</div>
+    </div>
+    <div class="card"><div class="acc a-g"></div>
+      <div class="klbl">Leads Convertidos</div>
+      <div class="kval c" id="k-conv">—</div>
+      <div class="ksub">acumulado período</div>
+      <div class="ktr c" id="k-conv-sub">—</div>
+    </div>
+    <div class="card"><div class="acc a-g"></div>
+      <div class="klbl">Taxa de Conversão</div>
+      <div class="kval c" id="k-tx">—</div>
+      <div class="ksub" id="k-tx-meta">—</div>
+      <div class="ktr g" id="k-tx-trend">—</div>
+    </div>
+    <div class="card"><div class="acc a-o"></div>
+      <div class="klbl">Novos Contratos</div>
+      <div class="kval c" id="k-novos">—</div>
+      <div class="ksub" style="color:var(--mid);font-weight:600" id="k-novos-destaque">—</div>
+      <div class="ktr c" id="k-novos-sub">—</div>
+    </div>
+
+    <!-- ROW 2 -->
+    <div class="card" style="grid-column:span 2">
+      <div class="stitle">Taxa de Conversão — Realizado vs. Meta<span class="smeta">meta mínima: <span id="meta-conv-lbl">15</span>% ao mês</span></div>
+      <div class="chwrap"><canvas id="cConversao"></canvas></div>
+    </div>
+
+    <div class="card" style="grid-column:span 2">
+      <div class="stitle">Metas — Visão Rosca</div>
+      <div class="donuts-pair">
+        <div class="donut-block">
+          <div class="donut-sub-title">Ocupação salas &amp; produtos<span class="smeta"> meta: <span id="meta-ocup-lbl">80</span>%</span></div>
+          <div class="dwrap">
+            <div class="donut-fit">
+              <canvas id="cDonutSalas"></canvas>
+              <div class="dcenter">
+                <div class="dpct" id="d-salas-pct">—</div>
+                <div class="dlbl">atual</div>
+              </div>
+            </div>
+          </div>
+          <div class="dmeta" id="d-salas-meta">—</div>
+        </div>
+
+        <div class="donut-block">
+          <div class="donut-sub-title">Progresso faturamento vs. meta<span class="smeta"> meta: R$<span id="meta-fat-lbl">28k</span>/mês</span></div>
+          <div class="dwrap">
+            <div class="donut-fit">
+              <canvas id="cDonutFat"></canvas>
+              <div class="dcenter">
+                <div class="dpct" id="d-fat-pct">—</div>
+                <div class="dlbl">atingido</div>
+              </div>
+            </div>
+          </div>
+          <div class="dmeta" id="d-fat-meta">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3 -->
+    <div class="card" style="grid-column:span 2">
+      <div class="stitle">Vendas por Vendedor — <span id="v-periodo">—</span></div>
+      <div class="vgrid" id="v-grid"></div>
+    </div>
+
+    <div class="card" style="grid-column:span 2">
+      <div class="stitle">Metas Anuais — Progresso</div>
+      <div class="bars-pair">
+        <div class="bar-block">
+          <div class="donut-sub-title">Leads atendidos<span class="smeta"> meta: <span id="meta-leads-lbl">200</span>/ano</span></div>
+          <div>
+            <div class="bbar-header">
+              <span class="bbar-lbl">Realizado (período)</span>
+              <span class="bbar-val" id="ml-real">—</span>
+            </div>
+            <div class="bbar-track">
+              <div class="bbar-fill" id="ml-real-bar" style="width:0%;background:#C5D30D;color:#0F0F0F">—</div>
+              <div class="bbar-target" id="ml-target-line" style="left:25%"></div>
+            </div>
+            <div class="bbar-foot" id="ml-foot">—</div>
+          </div>
+          <div>
+            <div class="bbar-header">
+              <span class="bbar-lbl">Projeção dezembro</span>
+              <span class="bbar-val" style="color:var(--amber)" id="ml-proj">—</span>
+            </div>
+            <div class="bbar-track">
+              <div class="bbar-fill stripe" id="ml-proj-bar" style="width:0%;background:var(--olive)">—</div>
+            </div>
+            <div class="bbar-foot" id="ml-proj-foot">—</div>
+          </div>
+          <div class="bbar-callout">
+            <div class="bbar-callout-lbl">Faltam para a meta</div>
+            <div class="bbar-callout-val" id="ml-falta">— <span style="font-size:12px;color:var(--muted)">leads</span></div>
+            <div class="bbar-callout-sub" id="ml-pace">—</div>
+          </div>
+        </div>
+
+        <div class="bar-block">
+          <div class="donut-sub-title">Ocupação salas &amp; produtos<span class="smeta"> meta: <span id="meta-ocup-lbl2">80</span>%</span></div>
+          <div>
+            <div class="bbar-header">
+              <span class="bbar-lbl">Hoje</span>
+              <span class="bbar-val" id="mo-hoje">—</span>
+            </div>
+            <div class="bbar-track">
+              <div class="bbar-fill" id="mo-hoje-bar" style="width:0%">—</div>
+              <div class="bbar-target" style="left:80%" id="mo-target1"></div>
+            </div>
+            <div class="bbar-foot">Meta: <span id="mo-meta-foot">80</span>% · linha tracejada = meta</div>
+          </div>
+          <div>
+            <div class="bbar-header">
+              <span class="bbar-lbl">Previsão dezembro</span>
+              <span class="bbar-val" id="mo-prev" style="color:var(--red)">—</span>
+            </div>
+            <div class="bbar-track">
+              <div class="bbar-fill stripe" id="mo-prev-bar" style="width:0%">—</div>
+              <div class="bbar-target" style="left:80%" id="mo-target2"></div>
+            </div>
+            <div class="bbar-foot">Base: contratos ativos vigentes</div>
+          </div>
+          <div class="bbar-callout" style="border-color:var(--red)" id="mo-callout">
+            <div class="bbar-callout-lbl">Gap atual vs. meta</div>
+            <div class="bbar-callout-val" style="color:var(--red)" id="mo-gap-now">—</div>
+            <div class="bbar-callout-sub" style="color:var(--red)" id="mo-gap-prev">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <span style="color:var(--mid);font-size:14px">★</span>
+      <span id="callout-text">—</span>
+      <span style="margin-left:auto;font-size:10px;opacity:.55" id="callout-tag">—</span>
+    </div>
+
+  </div>
+</div>
+
+<div id="admin-bar">
+  <span class="badge">ADMIN</span>
+  <span>Para atualizar dados, acesse</span>
+  <a href='/admin'>admin.html</a>
+</div>
+
+<script>
+const DADOS = JSON.parse(document.getElementById('dados-embutidos').textContent);
+const MID='#48a860',LIMA='#C5D30D',OLIV='#7e8c54',LGHT='#b6bf9a',BORD='#2e3628',BG3='#1e2419',AMBR='#d4924a',RED='#d95f4b',CREAM='#e4ebd0';
+const COR_VENDEDOR = {mid:MID,olive:OLIV,red:RED,amber:AMBR};
+Chart.defaults.color=LGHT; Chart.defaults.font.family="'DM Sans',sans-serif";
+
+const $ = id => document.getElementById(id);
+const fmtNum = n => n==null?'—':Number(n).toLocaleString('pt-BR');
+const fmtBRL = n => n==null?'—':'R$' + Number(n).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtPct = (n,d=0) => n==null?'—':Number(n).toFixed(d).replace('.',',')+'%';
+const fmtBigPct = n => n==null?'—':`${Math.round(n)}<span style="font-size:22px">%</span>`;
+
+function renderHeader(){
+  $('h-periodo').textContent = DADOS.config.periodo_titulo;
+  $('h-mes').textContent = DADOS.config.mes_referencia;
+  $('h-update').textContent = DADOS.config.ultima_atualizacao;
+  $('h-update-full').textContent = DADOS.config.ultima_atualizacao;
+  $('v-periodo').textContent = DADOS.config.periodo_titulo;
+  $('callout-tag').textContent = DADOS.config.periodo_titulo;
+  $('callout-text').textContent = DADOS.config.callout;
+  $('meta-conv-lbl').textContent = DADOS.config.meta_conversao;
+  $('meta-ocup-lbl').textContent = DADOS.config.meta_ocupacao;
+  $('meta-ocup-lbl2').textContent = DADOS.config.meta_ocupacao;
+  $('meta-fat-lbl').textContent = (DADOS.config.meta_faturamento_mensal/1000)+'k';
+  $('meta-leads-lbl').textContent = DADOS.config.meta_leads_anuais;
+}
+
+function renderKPIs(){
+  const lm = DADOS.leads_mensal;
+  const totalLeads = lm.reduce((s,m)=>s+m.atendidos,0);
+  const totalConv = lm.reduce((s,m)=>s+m.convertidos,0);
+  const tx = totalLeads>0 ? (totalConv/totalLeads)*100 : 0;
+  const meta = DADOS.config.meta_conversao;
+
+  $('k-leads').textContent = totalLeads;
+  $('k-leads-sub').textContent = lm.map(m=>`${m.mes.slice(0,3)}: ${m.atendidos}`).join(' | ');
+  if(lm.length>=2){
+    const last=lm[lm.length-1].atendidos, prev=lm[lm.length-2].atendidos;
+    if(prev>0){
+      const variacao = ((last-prev)/prev)*100;
+      const sinal = variacao>=0?'▲ +':'▼ ';
+      $('k-leads-trend').textContent = `${sinal}${Math.round(Math.abs(variacao))}% ${lm[lm.length-1].mes.slice(0,3)} vs. ${lm[lm.length-2].mes.slice(0,3)}`;
+      $('k-leads-trend').className = variacao>=0?'ktr g':'ktr r';
+    }
+  }
+
+  $('k-conv').textContent = totalConv;
+  $('k-conv-sub').textContent = lm.map(m=>`${m.mes.slice(0,3)}: ${m.convertidos}`).join(' | ');
+
+  $('k-tx').innerHTML = fmtBigPct(tx);
+  $('k-tx-meta').textContent = `meta anual: ≥ ${meta}%`;
+  if(tx>=meta){$('k-tx-trend').className='ktr g';$('k-tx-trend').textContent='▲ acima da meta';}
+  else{$('k-tx-trend').className='ktr r';$('k-tx-trend').textContent='▼ abaixo da meta';}
+
+  $('k-novos').textContent = DADOS.config.novos_contratos;
+  $('k-novos-destaque').textContent = DADOS.config.destaque_contrato;
+  $('k-novos-sub').textContent = DADOS.config.subtitulo_contratos;
+}
+
+function renderConversao(){
+  const lm = DADOS.leads_mensal;
+  const meta = DADOS.config.meta_conversao;
+  const dadosTaxa = lm.map(m=>m.atendidos>0?Math.round((m.convertidos/m.atendidos)*100):0);
+  const labels = lm.map(m=>m.mes);
+
+  const labelPlugin = {
+    id:'pointLabels',
+    afterDatasetsDraw(chart){
+      const ds = chart.data.datasets[1];
+      if(!ds) return;
+      const meta = chart.getDatasetMeta(1);
+      const ctx = chart.ctx;
+      ctx.save();
+      meta.data.forEach((pt,i)=>{
+        ctx.font = "600 13px 'DM Mono', monospace";
+        ctx.fillStyle = LIMA;
+        ctx.textAlign = 'center';
+        ctx.fillText(ds.data[i]+'%', pt.x, pt.y - 14);
+      });
+      ctx.restore();
+    }
+  };
+
+  new Chart($('cConversao'),{
+    type:'line',
+    plugins:[labelPlugin],
+    data:{
+      labels:labels,
+      datasets:[
+        {label:`Meta mínima (${meta}%)`,data:labels.map(()=>meta),borderColor:AMBR,borderWidth:2,borderDash:[7,4],pointRadius:0,pointHoverRadius:0,fill:false,tension:0},
+        {label:'Realizado',data:dadosTaxa,borderColor:LIMA,backgroundColor:'rgba(197,211,13,.10)',borderWidth:2.5,pointBackgroundColor:LIMA,pointBorderColor:LIMA,pointRadius:6,pointHoverRadius:8,fill:true,tension:.3}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},
+      plugins:{
+        legend:{position:'top',labels:{boxWidth:12,font:{size:13},color:CREAM,padding:16,usePointStyle:true}},
+        tooltip:{backgroundColor:BG3,borderColor:BORD,borderWidth:1,bodyFont:{size:13},titleFont:{size:13},callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}%`}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{color:CREAM,font:{size:13}}},
+        y:{grid:{display:false},ticks:{color:LGHT,font:{size:12},callback:v=>v+'%'},beginAtZero:true,suggestedMax:Math.max(...dadosTaxa,meta)+15}
+      }
+    }
+  });
+}
+
+function renderDonuts(){
+  const c = DADOS.config;
+  const ocup = c.ocupacao_atual;
+  const metaOcup = c.meta_ocupacao;
+  const gap = Math.max(0, metaOcup - ocup);
+  const desocup = 100 - ocup - gap;
+  const corOcup = ocup>=metaOcup ? MID : (ocup>=metaOcup*0.85 ? AMBR : RED);
+
+  $('d-salas-pct').textContent = fmtPct(ocup,0);
+  $('d-salas-pct').style.color = corOcup;
+  $('d-salas-meta').innerHTML = `<span style="color:${corOcup};font-weight:600">${ocup}% hoje</span> <span class="m"> · previsão dez: </span> <span style="color:${c.ocupacao_previsao_dez<metaOcup*0.8?RED:AMBR};font-weight:600">${c.ocupacao_previsao_dez}%</span> <span class="m"> · meta: </span> <span style="color:${MID};font-weight:600">${metaOcup}%</span>`;
+
+  new Chart($('cDonutSalas'),{
+    type:'doughnut',
+    data:{datasets:[{
+      data:[ocup,gap,desocup],
+      backgroundColor:[corOcup,'rgba(217,95,75,.45)','rgba(46,54,40,.5)'],
+      borderColor:[corOcup,RED,BORD],
+      borderWidth:1.5,hoverOffset:0
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'70%',
+      plugins:{legend:{display:false},tooltip:{enabled:true,backgroundColor:BG3,borderColor:BORD,borderWidth:1,bodyFont:{size:12},callbacks:{
+        label:ctx=>{const l=['Ocupado','Gap até meta','Desocupado'];return `${l[ctx.dataIndex]}: ${ctx.parsed}%`;}
+      }}},
+      animation:{duration:1200,easing:'easeInOutQuart'}
+    }
+  });
+
+  const fat = c.faturamento_atual;
+  const metaFat = c.meta_faturamento_mensal;
+  const fatPct = metaFat>0 ? Math.round((fat/metaFat)*100) : 0;
+  $('d-fat-pct').textContent = fatPct+'%';
+  $('d-fat-pct').style.color = LIMA;
+  $('d-fat-meta').innerHTML = `<span style="color:${LIMA};font-weight:600">${fmtBRL(fat)}</span><span class="m"> / ${fmtBRL(metaFat)}</span>`;
+
+  new Chart($('cDonutFat'),{
+    type:'doughnut',
+    data:{datasets:[{data:[fatPct,Math.max(0,100-fatPct)],backgroundColor:[LIMA,BG3],borderColor:[LIMA,BORD],borderWidth:1.5,hoverOffset:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:1200,easing:'easeInOutQuart'}}
+  });
+}
+
+function renderVendedores(){
+  const grid = $('v-grid');
+  grid.innerHTML='';
+  const totalReceita = DADOS.vendedores.reduce((s,v)=>s+v.receita_anualizada,0);
+  DADOS.vendedores.forEach(v=>{
+    const cor = COR_VENDEDOR[v.cor] || OLIV;
+    const tx = v.leads_atendidos>0 ? Math.round((v.convertidos/v.leads_atendidos)*100) : 0;
+    const part = totalReceita>0 ? Math.round((v.receita_anualizada/totalReceita)*100) : 0;
+    const corNeg = v.contratos===0 ? RED : CREAM;
+    const card = document.createElement('div');
+    card.className='vcard';
+    card.innerHTML = `
+      <div class="vacc" style="background:${cor}"></div>
+      <div class="vname">${v.nome}</div>
+      <div class="vstats">
+        <div>
+          <div class="vslab">Sales</div>
+          <div class="vsval" style="color:${corNeg}">${v.contratos}</div>
+          <div class="vssub">contratos</div>
+        </div>
+        <div>
+          <div class="vslab">Rec. Anualizada</div>
+          <div class="vsval" style="color:${corNeg}">${v.receita_anualizada>0?fmtBRL(v.receita_anualizada):'R$0'}</div>
+          <div class="vssub">${v.contratos>0?'base mensal':'sem vendas fechadas'}</div>
+        </div>
+        <div>
+          <div class="vslab">Conversão</div>
+          <div class="vsval" style="color:${corNeg}">${tx}<span style="font-size:13px">%</span></div>
+          <div class="vssub">${v.convertidos} de ${v.leads_atendidos}</div>
+        </div>
+      </div>
+      <div class="vbar">
+        <div class="vbarlbl"><span>Participação na receita</span><span style="color:${corNeg}">${part}%</span></div>
+        <div class="vtrack"><div class="vfill" style="width:${part}%;background:${cor}"></div></div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+
+function renderMetas(){
+  const c = DADOS.config;
+  const lm = DADOS.leads_mensal;
+  const totalLeads = lm.reduce((s,m)=>s+m.atendidos,0);
+  const meta = c.meta_leads_anuais;
+  const realPct = Math.round((totalLeads/meta)*100);
+  // tempo decorrido do ano: meses cobertos / 12
+  const mesesCobertos = lm.length;
+  const esperadoPct = Math.round((mesesCobertos/12)*100);
+  const projecaoAno = Math.round((totalLeads/mesesCobertos)*12);
+  const projPct = Math.round((projecaoAno/meta)*100);
+  const falta = meta - totalLeads;
+  const mesesRestantes = 12 - mesesCobertos;
+  const paceNecessario = mesesRestantes>0 ? (falta/mesesRestantes).toFixed(1).replace('.',',') : '0';
+
+  $('ml-real').textContent = `${totalLeads} / ${meta}`;
+  $('ml-real-bar').textContent = realPct+'%';
+  $('ml-real-bar').style.width = Math.min(realPct,100)+'%';
+  $('ml-target-line').style.left = esperadoPct+'%';
+  $('ml-foot').textContent = `Esperado no período: ${Math.round(meta*mesesCobertos/12)} leads (${esperadoPct}%)`;
+  $('ml-proj').textContent = `~${projecaoAno} / ${meta}`;
+  $('ml-proj-bar').textContent = projPct+'%';
+  $('ml-proj-bar').style.width = Math.min(projPct,100)+'%';
+  $('ml-proj-foot').textContent = `Base: média ${Math.round(totalLeads/mesesCobertos)} leads/mês`;
+  $('ml-falta').innerHTML = `${falta} <span style="font-size:12px;color:var(--muted)">leads</span>`;
+  $('ml-pace').textContent = `≈ ${paceNecessario} leads/mês nos próximos ${mesesRestantes} meses`;
+
+  // Ocupação
+  const oc = c.ocupacao_atual;
+  const ocPrev = c.ocupacao_previsao_dez;
+  const metaOc = c.meta_ocupacao;
+  const corOc = oc>=metaOc?MID:(oc>=metaOc*0.85?AMBR:RED);
+  const corOcPrev = ocPrev>=metaOc?MID:(ocPrev>=metaOc*0.85?AMBR:RED);
+
+  $('mo-hoje').textContent = oc+'%';
+  $('mo-hoje').style.color = corOc;
+  $('mo-hoje-bar').textContent = oc+'%';
+  $('mo-hoje-bar').style.width = oc+'%';
+  $('mo-hoje-bar').style.background = corOc;
+  $('mo-meta-foot').textContent = metaOc;
+  $('mo-prev').textContent = ocPrev+'%';
+  $('mo-prev').style.color = corOcPrev;
+  $('mo-prev-bar').textContent = ocPrev+'%';
+  $('mo-prev-bar').style.width = ocPrev+'%';
+  $('mo-prev-bar').style.background = corOcPrev==RED?'#c0392b':corOcPrev;
+
+  const gapNow = oc - metaOc;
+  const gapPrev = ocPrev - metaOc;
+  $('mo-gap-now').innerHTML = `${gapNow>=0?'+':''}${gapNow}pp <span style="font-size:12px;color:var(--muted)">${gapNow>=0?'acima':'abaixo'}</span>`;
+  $('mo-gap-now').style.color = gapNow>=0?MID:RED;
+  $('mo-gap-prev').textContent = `Previsão dez. ${Math.abs(gapPrev)}pp ${gapPrev>=0?'acima':'abaixo'} — ${gapPrev>=0?'no ritmo':'atenção'}`;
+  $('mo-gap-prev').style.color = gapPrev>=0?MID:RED;
+  $('mo-callout').style.borderLeftColor = gapNow>=0?MID:RED;
+}
+
+renderHeader();
+renderKPIs();
+renderConversao();
+renderDonuts();
+renderVendedores();
+renderMetas();
+
+if(new URLSearchParams(location.search).has('admin')){
+  document.getElementById('admin-bar').classList.add('show');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facilities Operacional — SLA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://api.fontshare.com/v2/css?f[]=ranade@300,400,500,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0F0F0F;--bg2:#171717;--bg3:#232323;--bg4:#2b2b2b;
+    --bord:#363636;--bord2:#2a4a6e;
+    --green:#C5D30D;--glight:#aeb94e;--cream:#F8F8F5;--olive:#7C7D7F;--light:#DBDBDB;--muted:#7C7D7F;
+    --v1:#00D7FF;--v2:#72FFFF;
+    --vbg:#0e1a26;
+    --red:#d95f4b;--amber:#d4924a;
+    --r:14px;--rs:8px;
+    --font:'Ranade',sans-serif;--mono:'Ranade',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--cream);font-family:var(--font);font-variant-numeric:tabular-nums;}
+  .shell{width:100vw;height:100vh;display:grid;grid-template-rows:56px 1fr;padding:12px;gap:10px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--bord);border-radius:var(--rs);padding:0 20px;}
+  .hl{display:flex;align-items:center;gap:14px;}
+  .logo{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--green);text-transform:uppercase;}
+  .logo-icon{width:28px;height:28px;border-radius:6px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--bg);}
+  .htitle{font-size:15px;font-weight:500;color:var(--cream);}
+  .hsub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .hr{display:flex;align-items:center;gap:10px;}
+  .bdg{font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;background:var(--bg3);border:1px solid var(--bord);color:var(--light);font-family:var(--mono);}
+  .bdg-g{background:rgba(197,211,13,.15);border-color:rgba(197,211,13,.4);color:var(--green);}
+  .bdg-b{background:rgba(0,215,255,.12);border-color:rgba(0,215,255,.3);color:var(--v1);}
+  .nav{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:5px 14px;border-radius:6px;border:1px solid var(--bord);background:var(--bg3);cursor:pointer;}
+  .nav:hover{color:var(--green);border-color:var(--green);}
+  .upd{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);font-family:var(--mono);padding:3px 10px;border-radius:20px;border:1px solid var(--bord);background:var(--bg3);cursor:default;position:relative;}
+  .upd:hover .upd-tip{display:block;}
+  .upd-tip{display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--bg4);border:1px solid var(--bord2);border-radius:6px;padding:5px 10px;font-size:10px;color:var(--cream);white-space:nowrap;z-index:10;}
+  .upd-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+
+  .main{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-height:0;}
+  .section{display:grid;grid-template-rows:28px auto 1fr;gap:8px;min-height:0;}
+  .sec-hdr{display:flex;align-items:center;gap:10px;}
+  .sec-lbl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+  .sec-lbl.green{color:var(--green);}.sec-lbl.blue{color:var(--v1);}
+  .sec-div{flex:1;height:1px;background:var(--bord);}
+  .sec-tag{font-size:10px;padding:2px 9px;border-radius:10px;font-family:var(--mono);}
+  .sec-tag.green{background:rgba(197,211,13,.12);border:1px solid rgba(197,211,13,.28);color:var(--glight);}
+  .sec-tag.blue{background:rgba(0,215,255,.10);border:1px solid rgba(0,215,255,.25);color:var(--v1);}
+
+  .krow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .card{background:var(--bg2);border:1px solid var(--bord);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative;transition:border-color .25s ease, transform .25s ease;}
+  .card:hover{border-color:var(--bord2);transform:translateY(-1px);}
+  .acc{position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r) var(--r) 0 0;}
+  .a-g{background:var(--green);}.a-r{background:var(--red);}.a-a{background:var(--amber);}.a-c{background:var(--cream);}.a-b{background:var(--v1);}.a-v2{background:var(--v2);}
+  .klbl{font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+  .kval{font-size:34px;font-weight:300;line-height:1;font-family:var(--mono);margin-bottom:2px;}
+  .ksub{font-size:11px;color:var(--light);}
+  .ktr{margin-top:auto;padding-top:6px;font-size:11px;font-weight:500;}
+  .g{color:var(--green);}.r{color:var(--red);}.a{color:var(--amber);}.c{color:var(--cream);}.m{color:var(--muted);}.b{color:var(--v1);}.b2{color:var(--v2);}
+
+  .sbody{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-height:0;}
+  .panel{background:var(--bg2);border:1px solid var(--bord);border-radius:var(--r);padding:13px 15px;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+  .ptitle{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;flex-shrink:0;}
+
+  .nrow{display:flex;align-items:center;gap:7px;margin-bottom:9px;}
+  .nrow:last-child{margin-bottom:0;}
+  .ntag{font-size:11px;font-weight:600;font-family:var(--mono);width:24px;flex-shrink:0;}
+  .nmeta{font-size:9px;color:var(--muted);width:48px;flex-shrink:0;}
+  .ntrack{flex:1;height:18px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+  .nfill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:7px;font-size:9px;font-weight:600;color:var(--bg);transition:width .8s ease;}
+  .npct{font-size:11px;font-weight:600;font-family:var(--mono);width:34px;text-align:right;flex-shrink:0;}
+  .ok{color:var(--green);}.warn{color:var(--amber);}
+
+  .donut-section{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;}
+  .donut-canvas-wrap{position:relative;width:160px;height:160px;flex-shrink:0;}
+  .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .dpct{font-size:28px;font-weight:300;font-family:var(--mono);line-height:1;}
+  .dlbl{font-size:9px;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+  .donut-info{margin-top:10px;text-align:center;}
+  .donut-info-val{font-size:13px;font-weight:500;}
+  .donut-info-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+
+  .alerta{background:rgba(217,95,75,.08);border:1px solid rgba(217,95,75,.3);border-left:3px solid var(--red);border-radius:var(--rs);padding:7px 12px;font-size:10px;color:rgba(217,95,75,.85);flex-shrink:0;margin-bottom:8px;}
+  .alerta-title{font-weight:600;margin-bottom:2px;}
+
+  .chwrap{flex:1;min-height:0;position:relative;}
+  .nota{background:rgba(0,215,255,.07);border:1px solid rgba(0,215,255,.18);border-radius:var(--rs);padding:6px 11px;font-size:10px;color:rgba(0,215,255,.7);flex-shrink:0;margin-top:8px;}
+
+  /* Admin widget */
+  #admin-bar{position:fixed;bottom:14px;right:14px;z-index:999;background:var(--bg2);border:1px solid var(--bord);border-radius:var(--rs);padding:10px 14px;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;align-items:center;gap:10px;font-size:11px;}
+  #admin-bar.show{display:flex;}
+  #admin-bar .badge{font-size:9px;padding:2px 7px;border-radius:10px;background:var(--green);color:var(--bg);font-weight:600;letter-spacing:.05em;}
+  #admin-bar a{color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green);}
+</style>
+</head>
+<body>
+
+<!-- ┌──────────────────────────────────────────────────────────────┐
+     │  DADOS — substituídos a cada deploy pelo admin.html          │
+     │  NÃO ALTERAR MANUALMENTE                                      │
+     └──────────────────────────────────────────────────────────────┘ -->
+<script id="dados-embutidos" type="application/json">
+{
+  "operacional": {
+    "config": {
+      "periodo": "Apr-26",
+      "ultima_atualizacao": "4/28/26",
+      "meta_sla_manutencao": 90,
+      "meta_sla_viagens": 90
+    },
+    "manutencao": {
+      "encerrados_no_prazo": 83,
+      "encerrados_atrasados": 8,
+      "abertos_no_prazo": 7,
+      "abertos_atrasados": 2,
+      "niveis": [
+        {
+          "nivel": "N1",
+          "prazo_du": 2,
+          "encerrados_total": 53,
+          "encerrados_no_prazo": 46
+        },
+        {
+          "nivel": "N2",
+          "prazo_du": 7,
+          "encerrados_total": 24,
+          "encerrados_no_prazo": 18
+        },
+        {
+          "nivel": "N3",
+          "prazo_du": 20,
+          "encerrados_total": 6,
+          "encerrados_no_prazo": 1
+        }
+      ]
+    },
+    "viagens": {
+      "total": 31,
+      "concluidos": 29,
+      "cancelados": 2,
+      "atrasados_encerrados": 2,
+      "atrasados_abertos": 0,
+      "concluidos_no_prazo": 29,
+      "concluidos_avaliados": 29,
+      "sem_data_encerramento": 0,
+      "evolucao": [
+        {
+          "mes": "Jan",
+          "total": 3,
+          "no_prazo": 3
+        },
+        {
+          "mes": "Fev",
+          "total": 8,
+          "no_prazo": 7
+        },
+        {
+          "mes": "Mar",
+          "total": 9,
+          "no_prazo": 9
+        },
+        {
+          "mes": "Abril",
+          "total": 7,
+          "no_prazo": 7
+        },
+        {
+          "mes": "Maio",
+          "total": 2,
+          "no_prazo": 1
+        }
+      ]
+    }
+  },
+  "comercial": {
+    "config": {
+      "periodo_titulo": "Acumulado Jan–Abri 2026",
+      "mes_referencia": "Apr-26",
+      "ultima_atualizacao": "4/28/26",
+      "meta_conversao": 15,
+      "meta_ocupacao": 80,
+      "meta_leads_anuais": 200,
+      "meta_faturamento_mensal": 28000,
+      "ocupacao_atual": 83,
+      "ocupacao_previsao_dez": 53,
+      "faturamento_atual": 36375,
+      "novos_contratos": 4,
+      "destaque_contrato": "★ Abril: 3 sala privativa",
+      "subtitulo_contratos": "+5 contrato & 2 renovações",
+      "callout": "Maio: +6 salas novas locadas. +2 renovações de contrato.Conversão (35%) acima da meta mínima (15%). Ocupação atual 83% "
+    },
+    "leads_mensal": [
+      {
+        "mes": "Janeiro",
+        "atendidos": 9,
+        "convertidos": 3
+      },
+      {
+        "mes": "Fevereiro",
+        "atendidos": 10,
+        "convertidos": 5
+      },
+      {
+        "mes": "Março",
+        "atendidos": 17,
+        "convertidos": 4
+      },
+      {
+        "mes": "Abril",
+        "atendidos": 8,
+        "convertidos": 2
+      },
+      {
+        "mes": "Maio",
+        "atendidos": 5,
+        "convertidos": 2
+      }
+    ],
+    "vendedores": [
+      {
+        "nome": "Daiana",
+        "cor": "mid",
+        "contratos": 17,
+        "receita_anualizada": 48937,
+        "leads_atendidos": 34,
+        "convertidos": 0
+      },
+      {
+        "nome": "Roberta",
+        "cor": "olive",
+        "contratos": 1,
+        "receita_anualizada": 0,
+        "leads_atendidos": 18,
+        "convertidos": 1
+      }
+    ],
+    "funil": {
+      "leads_atendidos": 53,
+      "em_aberto": 0,
+      "convertidos": 17,
+      "churned": 0
+    }
+  },
+  "desfalque": {
+    "contratos": [
+      {
+        "tipo": "contrato",
+        "nome": "Zeno",
+        "desfalque_mensal": 3555,
+        "desfalque_anual": 42600,
+        "observacao": "Contrato com valor abaixo do praticado"
+      },
+      {
+        "tipo": "contrato",
+        "nome": "Caplink + Leandro",
+        "desfalque_mensal": 3000,
+        "desfalque_anual": 36000,
+        "observacao": "Dois contratos agrupados"
+      }
+    ],
+    "posicoes_individuais": [
+      {
+        "tipo": "posicao_individual",
+        "nome": "Michele",
+        "desfalque_mensal": 60,
+        "desfalque_anual": 720,
+        "observacao": "Ativo"
+      },
+      {
+        "tipo": "posicao_individual",
+        "nome": "Paula",
+        "desfalque_mensal": 40,
+        "desfalque_anual": 480,
+        "observacao": "Ativo"
+      }
+    ],
+    "total_mensal": 6655,
+    "total_anual": 79800
+  },
+  "orcamento": {
+    "realizado_mes": 66700,
+    "orcado_mes": 69400,
+    "inicial_mes": 79400,
+    "anual": 832000,
+    "consumo_acumulado_valor": 79200,
+    "consumo_acumulado_esperado_pct": 33,
+    "custo_total_mes": 781.44,
+    "mao_obra_mes": 524.09,
+    "material_mes": 257.35,
+    "cards_custo_concluidos": 10
+  },
+  "statusAreasManual": {}
+}
+</script>
+
+<div class="shell">
+  <header>
+    <div class="hl">
+      <div class="logo"><div class="logo-icon">✦</div>hype</div>
+      <div style="width:1px;height:24px;background:var(--bord)"></div>
+      <div>
+        <div class="htitle">Facilities Operacional — SLA de Manutenção &amp; Viagens</div>
+        <div class="hsub" id="h-periodo">—</div>
+      </div>
+    </div>
+    <div class="hr">
+      <div class="upd">
+        <div class="upd-dot"></div>
+        Atualizado: <span id="h-update">—</span>
+        <div class="upd-tip">Última atualização dos dados: <span id="h-update-full">—</span></div>
+      </div>
+      <span class="bdg bdg-g">● Manutenção</span>
+      <span class="bdg bdg-b">● Viagens</span>
+      <a class='nav' href='/comercial'>→ Comercial</a>
+      <a class='nav' href='/admin'>↻ Atualizar Dados</a>
+    </div>
+  </header>
+
+  <div class="main">
+
+    <!-- ══ MANUTENÇÃO ══ -->
+    <div class="section">
+      <div class="sec-hdr">
+        <div class="sec-lbl green">SLA de Manutenção</div>
+        <div class="sec-div"></div>
+        <div class="sec-tag green">N1 · N2 · N3</div>
+      </div>
+
+      <div class="krow">
+        <div class="card"><div class="acc a-c"></div>
+          <div class="klbl">Total Manutenção</div>
+          <div class="kval c" id="m-total">—</div>
+          <div class="ksub">no período</div>
+        </div>
+        <div class="card"><div class="acc a-c"></div>
+          <div class="klbl">Encerrados no Prazo</div>
+          <div class="kval g" id="m-enc-prazo">—</div>
+          <div class="ksub" id="m-enc-prazo-sub">—</div>
+        </div>
+        <div class="card"><div class="acc a-r"></div>
+          <div class="klbl">Encerrados Atrasados</div>
+          <div class="kval r" id="m-enc-atr">—</div>
+          <div class="ksub" id="m-enc-atr-sub">—</div>
+          <div class="ktr r" id="m-enc-atr-warn"></div>
+        </div>
+        <div class="card"><div class="acc a-a"></div>
+          <div class="klbl">% SLA (encerrados)</div>
+          <div class="kval a" id="m-sla">—</div>
+          <div class="ksub" id="m-sla-meta">—</div>
+          <div class="ktr" id="m-sla-trend">—</div>
+        </div>
+      </div>
+
+      <div class="sbody">
+        <div class="panel">
+          <div class="ptitle">SLA por nível de prioridade</div>
+          <div id="m-niveis" style="flex:1;display:flex;flex-direction:column;justify-content:space-around"></div>
+          <div class="alerta" id="m-alerta" style="margin-top:8px;margin-bottom:0;display:none">
+            <div class="alerta-title">⚠ <span id="m-alerta-titulo"></span></div>
+            <div>Filtre coluna U da aba BASE para identificar</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="ptitle">% SLA geral — manutenção</div>
+          <div class="donut-section">
+            <div class="donut-canvas-wrap">
+              <canvas id="cDonutManut" width="160" height="160"></canvas>
+              <div class="donut-center">
+                <div class="dpct g" id="d-manut-pct">—</div>
+                <div class="dlbl" style="color:rgba(197,211,13,.55)">SLA</div>
+              </div>
+            </div>
+            <div class="donut-info">
+              <div class="donut-info-val g" id="d-manut-frac">—</div>
+              <div class="donut-info-sub" id="d-manut-sub">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ VIAGENS ══ -->
+    <div class="section">
+      <div class="sec-hdr">
+        <div class="sec-lbl blue">SLA de Viagens</div>
+        <div class="sec-div" style="background:var(--bord2)"></div>
+        <div class="sec-tag blue">N4 · 3 dias úteis</div>
+      </div>
+
+      <div class="krow">
+        <div class="card" style="border-color:var(--bord2);background:var(--vbg)"><div class="acc a-b"></div>
+          <div class="klbl" style="color:rgba(0,215,255,.5)">Total Viagens</div>
+          <div class="kval b" id="v-total">—</div>
+          <div class="ksub">no período</div>
+        </div>
+        <div class="card" style="border-color:var(--bord2);background:var(--vbg)"><div class="acc a-b"></div>
+          <div class="klbl" style="color:rgba(0,215,255,.5)">Concluídos</div>
+          <div class="kval b" id="v-concl">—</div>
+          <div class="ksub" id="v-concl-sub">—</div>
+        </div>
+        <div class="card" style="border-color:var(--bord2);background:var(--vbg)"><div class="acc a-v2"></div>
+          <div class="klbl" style="color:rgba(114,255,255,.5)">% SLA (concluídos)</div>
+          <div class="kval b2" id="v-sla">—</div>
+          <div class="ksub" id="v-sla-meta">—</div>
+          <div class="ktr" id="v-sla-trend">—</div>
+        </div>
+        <div class="card" style="border-color:var(--bord2);background:var(--vbg)"><div class="acc a-a"></div>
+          <div class="klbl" style="color:rgba(0,215,255,.5)">Atrasados</div>
+          <div class="kval a" id="v-atr">—</div>
+          <div class="ksub" id="v-atr-sub">—</div>
+          <div class="ktr" id="v-atr-trend">—</div>
+        </div>
+      </div>
+
+      <div class="sbody">
+        <div class="panel" style="border-color:var(--bord2);background:var(--vbg)">
+          <div class="ptitle" style="color:rgba(0,215,255,.6)">Evolução Mensal — Abertas vs. No Prazo</div>
+          <div class="chwrap">
+            <canvas id="cViag"></canvas>
+          </div>
+          <div class="nota">N4: prazo 3 dias úteis · Início SLA: Criado em · Fim: Aguardando Aprovação</div>
+        </div>
+
+        <div class="panel" style="border-color:var(--bord2);background:var(--vbg)">
+          <div class="ptitle" style="color:rgba(0,215,255,.6)">% SLA geral — viagens</div>
+          <div class="donut-section">
+            <div class="donut-canvas-wrap">
+              <canvas id="cDonutViag" width="160" height="160"></canvas>
+              <div class="donut-center">
+                <div class="dpct b" id="d-viag-pct">—</div>
+                <div class="dlbl" style="color:rgba(0,215,255,.5)">SLA</div>
+              </div>
+            </div>
+            <div class="donut-info">
+              <div class="donut-info-val b" id="d-viag-frac">—</div>
+              <div class="donut-info-sub" id="d-viag-sub">—</div>
+            </div>
+          </div>
+          <div class="nota" style="margin-top:8px" id="d-viag-nota"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="admin-bar">
+  <span class="badge">ADMIN</span>
+  <span>Para atualizar dados, acesse</span>
+  <a href='/admin'>admin.html</a>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   RENDER — tudo é alimentado por DADOS embutidos no script JSON acima
+   ═══════════════════════════════════════════════════════════════════════ */
+const DADOS = JSON.parse(document.getElementById('dados-embutidos').textContent);
+const GREEN='#C5D30D',V1='#00D7FF',V2='#72FFFF',BORD='#363636',BG3='#232323',BG4='#2b2b2b';
+const CREAM='#F8F8F5',MUTED='#7C7D7F',AMBR='#d4924a',RED='#d95f4b';
+Chart.defaults.color=CREAM; Chart.defaults.font.family="'Ranade',sans-serif";
+
+const $ = id => document.getElementById(id);
+const fmt = (n,d=1) => (n==null||isNaN(n))?'—':Number(n).toFixed(d).replace('.',',');
+const fmtPct = (n,d=1) => (n==null||isNaN(n))?'—':Number(n).toFixed(d).replace('.',',')+'%';
+const fmtPctSpan = n => (n==null||isNaN(n))?'—':Number(n).toFixed(1).replace('.',',')+'<span style="font-size:18px">%</span>';
+
+function renderHeader(){
+  $('h-periodo').textContent = DADOS.config.periodo;
+  $('h-update').textContent = DADOS.config.ultima_atualizacao;
+  $('h-update-full').textContent = DADOS.config.ultima_atualizacao;
+}
+
+function renderManut(){
+  const m = DADOS.manutencao;
+  const total = m.encerrados_no_prazo + m.encerrados_atrasados + m.abertos_no_prazo + m.abertos_atrasados;
+  const enc_total = m.encerrados_no_prazo + m.encerrados_atrasados;
+  const sla = enc_total>0 ? (m.encerrados_no_prazo/enc_total)*100 : 0;
+  const meta = DADOS.config.meta_sla_manutencao;
+
+  $('m-total').textContent = total;
+  $('m-enc-prazo').textContent = m.encerrados_no_prazo;
+  $('m-enc-prazo-sub').textContent = `+ ${m.abertos_no_prazo} abertos no prazo`;
+  $('m-enc-atr').textContent = m.encerrados_atrasados;
+  $('m-enc-atr-sub').textContent = `+ ${m.abertos_atrasados} aberto${m.abertos_atrasados!==1?'s':''} atrasado${m.abertos_atrasados!==1?'s':''}`;
+  if(m.abertos_atrasados>0){
+    $('m-enc-atr-warn').textContent = `▲ ${m.abertos_atrasados} card${m.abertos_atrasados>1?'s':''} em atraso aberto${m.abertos_atrasados>1?'s':''}`;
+  }
+
+  $('m-sla').innerHTML = fmtPctSpan(sla);
+  $('m-sla-meta').textContent = `meta: ≥ ${meta}%`;
+  const trend = $('m-sla-trend');
+  if(sla >= meta){ trend.className='ktr g'; trend.textContent='▲ acima da meta'; }
+  else { trend.className='ktr r'; trend.textContent='▼ abaixo da meta'; }
+
+  // por nível
+  const niveis = $('m-niveis');
+  niveis.innerHTML='';
+  m.niveis.forEach(n=>{
+    const taxa = n.encerrados_total>0 ? (n.encerrados_no_prazo/n.encerrados_total)*100 : null;
+    const cor = taxa==null ? 'var(--muted)' : (taxa>=meta ? 'var(--green)' : (taxa>=70 ? 'var(--green)' : (taxa>=50 ? 'var(--amber)' : 'var(--red)')));
+    const pctClass = taxa==null?'m':(taxa>=70?'ok':(taxa>=50?'warn':'r'));
+    const fillTxt = n.encerrados_total>0 ? `${n.encerrados_total} · ${n.encerrados_no_prazo}` : '';
+    const w = taxa==null ? 4 : Math.max(taxa,4);
+    const row = document.createElement('div');
+    row.className='nrow';
+    row.innerHTML = `
+      <div class="ntag g">${n.nivel}</div>
+      <div class="nmeta">${n.prazo_du} du</div>
+      <div class="ntrack"><div class="nfill" style="width:${w}%;background:${cor}">${fillTxt}</div></div>
+      <div class="npct ${pctClass}">${taxa==null?'—':fmtPct(taxa,1)}</div>`;
+    niveis.appendChild(row);
+  });
+
+  // alerta
+  if(m.abertos_atrasados>0){
+    $('m-alerta').style.display='block';
+    $('m-alerta-titulo').textContent = `${m.abertos_atrasados} card${m.abertos_atrasados>1?'s':''} em atraso aberto${m.abertos_atrasados>1?'s':''}`;
+  }
+
+  // donut
+  $('d-manut-pct').textContent = fmtPct(sla,1);
+  $('d-manut-frac').textContent = `${m.encerrados_no_prazo} de ${enc_total}`;
+  $('d-manut-sub').textContent = `encerrados dentro do prazo · meta ≥ ${meta}%`;
+  new Chart($('cDonutManut'),{
+    type:'doughnut',
+    data:{datasets:[{data:[sla,100-sla],backgroundColor:[GREEN,'rgba(54,54,54,.7)'],borderColor:[GREEN,BORD],borderWidth:1.5,hoverOffset:0}]},
+    options:{responsive:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:1200,easing:'easeInOutQuart'}}
+  });
+}
+
+function renderViag(){
+  const v = DADOS.viagens;
+  const meta = DADOS.config.meta_sla_viagens;
+  const sla = v.concluidos_avaliados>0 ? (v.concluidos_no_prazo/v.concluidos_avaliados)*100 : 0;
+
+  $('v-total').textContent = v.total;
+  $('v-concl').textContent = v.concluidos;
+  $('v-concl-sub').textContent = `${v.cancelados} cancelado${v.cancelados!==1?'s':''}`;
+  $('v-sla').innerHTML = fmtPctSpan(sla);
+  $('v-sla-meta').innerHTML = `meta: ≥ ${meta}% ${sla>=meta?'✓':'✗'}`;
+  const slaT = $('v-sla-trend');
+  if(sla>=meta){slaT.className='ktr g';slaT.textContent='▲ acima da meta';}
+  else{slaT.className='ktr b';slaT.textContent='▼ abaixo da meta';}
+
+  $('v-atr').textContent = v.atrasados_encerrados;
+  $('v-atr-sub').textContent = `${v.atrasados_abertos} aberto${v.atrasados_abertos!==1?'s':''} em atraso`;
+  const atrT = $('v-atr-trend');
+  if(v.atrasados_abertos===0){atrT.className='ktr b';atrT.textContent='✓ sem atraso aberto';}
+  else{atrT.className='ktr r';atrT.textContent=`▲ ${v.atrasados_abertos} aberto${v.atrasados_abertos>1?'s':''} em atraso`;}
+
+  // donut
+  $('d-viag-pct').textContent = fmtPct(sla,1);
+  $('d-viag-frac').textContent = `${v.concluidos_no_prazo} de ${v.concluidos_avaliados}`;
+  $('d-viag-sub').innerHTML = `concluídos no prazo · meta ≥ ${meta}% ${sla>=meta?'✓':'✗'}`;
+  if(v.sem_data_encerramento>0){
+    $('d-viag-nota').textContent = `${v.sem_data_encerramento} cards "Viagens Concluídas" sem data de encerramento — não entram no % SLA`;
+  } else {
+    $('d-viag-nota').style.display='none';
+  }
+  new Chart($('cDonutViag'),{
+    type:'doughnut',
+    data:{datasets:[{data:[sla,100-sla],backgroundColor:[V1,'rgba(30,53,88,.8)'],borderColor:[V1,BORD],borderWidth:1.5,hoverOffset:0}]},
+    options:{responsive:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:1200,easing:'easeInOutQuart'}}
+  });
+
+  // linhas
+  new Chart($('cViag'),{
+    type:'line',
+    data:{
+      labels:v.evolucao.map(x=>x.mes),
+      datasets:[
+        {label:'Total',data:v.evolucao.map(x=>x.total),borderColor:'rgba(0,215,255,.5)',backgroundColor:'rgba(0,215,255,.06)',borderWidth:2,pointBackgroundColor:V1,pointBorderColor:V1,pointRadius:5,fill:true,tension:.35},
+        {label:'No Prazo',data:v.evolucao.map(x=>x.no_prazo),borderColor:V2,backgroundColor:'rgba(114,255,255,.08)',borderWidth:2.5,pointBackgroundColor:V2,pointBorderColor:V2,pointRadius:5,fill:true,tension:.35}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:11},color:CREAM,padding:12}},tooltip:{backgroundColor:BG4,borderColor:BORD,borderWidth:1,bodyFont:{size:12},titleFont:{size:12}}},scales:{x:{grid:{color:'rgba(0,215,255,.12)'},ticks:{color:CREAM,font:{size:11}}},y:{grid:{color:'rgba(0,215,255,.12)'},ticks:{color:CREAM,font:{size:11}},beginAtZero:true}}}
+  });
+}
+
+renderHeader();
+renderManut();
+renderViag();
+
+// Admin mode
+if(new URLSearchParams(location.search).has('admin')){
+  document.getElementById('admin-bar').classList.add('show');
+}
+</script>
+</body>
+</html>

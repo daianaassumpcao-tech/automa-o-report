@@ -1,0 +1,25 @@
+[build]
+  publish = "."
+
+# Rotas amigáveis usadas nos links do header (ex: href='/admin', href='/operacional')
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/operacional"
+  to = "/operacional.html"
+  status = 200
+
+[[redirects]]
+  from = "/comercial"
+  to = "/comercial.html"
+  status = 200
+
+# Os HTMLs trazem os dados embutidos no próprio arquivo — nunca cachear,
+# senão o navegador pode mostrar um mês antigo depois de um deploy novo.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

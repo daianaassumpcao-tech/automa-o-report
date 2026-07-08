@@ -102,195 +102,70 @@
      └──────────────────────────────────────────────────────────────┘ -->
 <script id="dados-embutidos" type="application/json">
 {
-  "operacional": {
-    "config": {
-      "periodo": "Apr-26",
-      "ultima_atualizacao": "4/28/26",
-      "meta_sla_manutencao": 90,
-      "meta_sla_viagens": 90
-    },
-    "manutencao": {
-      "encerrados_no_prazo": 83,
-      "encerrados_atrasados": 8,
-      "abertos_no_prazo": 7,
-      "abertos_atrasados": 2,
-      "niveis": [
-        {
-          "nivel": "N1",
-          "prazo_du": 2,
-          "encerrados_total": 53,
-          "encerrados_no_prazo": 46
-        },
-        {
-          "nivel": "N2",
-          "prazo_du": 7,
-          "encerrados_total": 24,
-          "encerrados_no_prazo": 18
-        },
-        {
-          "nivel": "N3",
-          "prazo_du": 20,
-          "encerrados_total": 6,
-          "encerrados_no_prazo": 1
-        }
-      ]
-    },
-    "viagens": {
-      "total": 31,
-      "concluidos": 29,
-      "cancelados": 2,
-      "atrasados_encerrados": 2,
-      "atrasados_abertos": 0,
-      "concluidos_no_prazo": 29,
-      "concluidos_avaliados": 29,
-      "sem_data_encerramento": 0,
-      "evolucao": [
-        {
-          "mes": "Jan",
-          "total": 3,
-          "no_prazo": 3
-        },
-        {
-          "mes": "Fev",
-          "total": 8,
-          "no_prazo": 7
-        },
-        {
-          "mes": "Mar",
-          "total": 9,
-          "no_prazo": 9
-        },
-        {
-          "mes": "Abril",
-          "total": 7,
-          "no_prazo": 7
-        },
-        {
-          "mes": "Maio",
-          "total": 2,
-          "no_prazo": 1
-        }
-      ]
-    }
+  "config": {
+    "periodo": "Apr-26",
+    "ultima_atualizacao": "4/28/26",
+    "meta_sla_manutencao": 90,
+    "meta_sla_viagens": 90
   },
-  "comercial": {
-    "config": {
-      "periodo_titulo": "Acumulado Jan–Abri 2026",
-      "mes_referencia": "Apr-26",
-      "ultima_atualizacao": "4/28/26",
-      "meta_conversao": 15,
-      "meta_ocupacao": 80,
-      "meta_leads_anuais": 200,
-      "meta_faturamento_mensal": 28000,
-      "ocupacao_atual": 83,
-      "ocupacao_previsao_dez": 53,
-      "faturamento_atual": 36375,
-      "novos_contratos": 4,
-      "destaque_contrato": "★ Abril: 3 sala privativa",
-      "subtitulo_contratos": "+5 contrato & 2 renovações",
-      "callout": "Maio: +6 salas novas locadas. +2 renovações de contrato.Conversão (35%) acima da meta mínima (15%). Ocupação atual 83% "
-    },
-    "leads_mensal": [
+  "manutencao": {
+    "encerrados_no_prazo": 24,
+    "encerrados_atrasados": 8,
+    "abertos_no_prazo": 2,
+    "abertos_atrasados": 0,
+    "niveis": [
       {
-        "mes": "Janeiro",
-        "atendidos": 9,
-        "convertidos": 3
+        "nivel": "N1",
+        "prazo_du": 2,
+        "encerrados_total": 10,
+        "encerrados_no_prazo": 5
       },
       {
-        "mes": "Fevereiro",
-        "atendidos": 10,
-        "convertidos": 5
+        "nivel": "N2",
+        "prazo_du": 7,
+        "encerrados_total": 24,
+        "encerrados_no_prazo": 18
       },
       {
-        "mes": "Março",
-        "atendidos": 17,
-        "convertidos": 4
+        "nivel": "N3",
+        "prazo_du": 20,
+        "encerrados_total": 5,
+        "encerrados_no_prazo": 1
+      }
+    ]
+  },
+  "viagens": {
+    "total": 27,
+    "concluidos": 25,
+    "cancelados": 2,
+    "atrasados_encerrados": 1,
+    "atrasados_abertos": 0,
+    "concluidos_no_prazo": 24,
+    "concluidos_avaliados": 24,
+    "sem_data_encerramento": 0,
+    "evolucao": [
+      {
+        "mes": "Jan",
+        "total": 3,
+        "no_prazo": 3
+      },
+      {
+        "mes": "Fev",
+        "total": 8,
+        "no_prazo": 7
+      },
+      {
+        "mes": "Mar",
+        "total": 9,
+        "no_prazo": 9
       },
       {
         "mes": "Abril",
-        "atendidos": 8,
-        "convertidos": 2
-      },
-      {
-        "mes": "Maio",
-        "atendidos": 5,
-        "convertidos": 2
+        "total": 7,
+        "no_prazo": 7
       }
-    ],
-    "vendedores": [
-      {
-        "nome": "Daiana",
-        "cor": "mid",
-        "contratos": 17,
-        "receita_anualizada": 48937,
-        "leads_atendidos": 34,
-        "convertidos": 0
-      },
-      {
-        "nome": "Roberta",
-        "cor": "olive",
-        "contratos": 1,
-        "receita_anualizada": 0,
-        "leads_atendidos": 18,
-        "convertidos": 1
-      }
-    ],
-    "funil": {
-      "leads_atendidos": 53,
-      "em_aberto": 0,
-      "convertidos": 17,
-      "churned": 0
-    }
-  },
-  "desfalque": {
-    "contratos": [
-      {
-        "tipo": "contrato",
-        "nome": "Zeno",
-        "desfalque_mensal": 3555,
-        "desfalque_anual": 42600,
-        "observacao": "Contrato com valor abaixo do praticado"
-      },
-      {
-        "tipo": "contrato",
-        "nome": "Caplink + Leandro",
-        "desfalque_mensal": 3000,
-        "desfalque_anual": 36000,
-        "observacao": "Dois contratos agrupados"
-      }
-    ],
-    "posicoes_individuais": [
-      {
-        "tipo": "posicao_individual",
-        "nome": "Michele",
-        "desfalque_mensal": 60,
-        "desfalque_anual": 720,
-        "observacao": "Ativo"
-      },
-      {
-        "tipo": "posicao_individual",
-        "nome": "Paula",
-        "desfalque_mensal": 40,
-        "desfalque_anual": 480,
-        "observacao": "Ativo"
-      }
-    ],
-    "total_mensal": 6655,
-    "total_anual": 79800
-  },
-  "orcamento": {
-    "realizado_mes": 66700,
-    "orcado_mes": 69400,
-    "inicial_mes": 79400,
-    "anual": 832000,
-    "consumo_acumulado_valor": 79200,
-    "consumo_acumulado_esperado_pct": 33,
-    "custo_total_mes": 781.44,
-    "mao_obra_mes": 524.09,
-    "material_mes": 257.35,
-    "cards_custo_concluidos": 10
-  },
-  "statusAreasManual": {}
+    ]
+  }
 }
 </script>
 
@@ -533,7 +408,9 @@ function renderManut(){
 function renderViag(){
   const v = DADOS.viagens;
   const meta = DADOS.config.meta_sla_viagens;
-  const sla = v.concluidos_avaliados>0 ? (v.concluidos_no_prazo/v.concluidos_avaliados)*100 : 0;
+  // denominador = no_prazo + atrasados_encerrados (inclui concluídas fora do SLA)
+  const denomViag = v.concluidos_no_prazo + (v.atrasados_encerrados||0);
+  const sla = denomViag>0 ? (v.concluidos_no_prazo/denomViag)*100 : 0;
 
   $('v-total').textContent = v.total;
   $('v-concl').textContent = v.concluidos;
@@ -552,7 +429,7 @@ function renderViag(){
 
   // donut
   $('d-viag-pct').textContent = fmtPct(sla,1);
-  $('d-viag-frac').textContent = `${v.concluidos_no_prazo} de ${v.concluidos_avaliados}`;
+  $('d-viag-frac').textContent = `${v.concluidos_no_prazo} de ${denomViag}`;
   $('d-viag-sub').innerHTML = `concluídos no prazo · meta ≥ ${meta}% ${sla>=meta?'✓':'✗'}`;
   if(v.sem_data_encerramento>0){
     $('d-viag-nota').textContent = `${v.sem_data_encerramento} cards "Viagens Concluídas" sem data de encerramento — não entram no % SLA`;

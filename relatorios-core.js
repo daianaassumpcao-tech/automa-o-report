@@ -487,6 +487,7 @@ function montarDadosDeWorkbook(wb){
             encerrados_atrasados: num(mKpi.encerrados_atrasados),
             abertos_no_prazo: num(mKpi.abertos_no_prazo),
             abertos_atrasados: num(mKpi.abertos_atrasados),
+            cancelados: num(mKpi.cancelados||0),
             niveis: mNiv
           },
           viagens:{
@@ -604,7 +605,7 @@ function calcPdfData(dados){
 
   const encTotal = m.encerrados_no_prazo + m.encerrados_atrasados;
   const slaManut = encTotal>0 ? (m.encerrados_no_prazo/encTotal*100) : 0;
-  const totalCardsManut = encTotal + m.abertos_no_prazo + m.abertos_atrasados;
+  const totalCardsManut = encTotal + m.abertos_no_prazo + m.abertos_atrasados + (m.cancelados||0);
 
   const denomViagensPdf = v.concluidos_no_prazo + v.atrasados_encerrados;
   const slaViagens = denomViagensPdf>0 ? (v.concluidos_no_prazo/denomViagensPdf*100) : 0;
@@ -820,15 +821,15 @@ function buildOperacionalPdfHtml(dados, textos){
     <div class="pdf-kpi"><div class="lbl">Custo Operacional</div><div class="val unit">${pdfBrl(orc.custo_total_mes||0,2)}</div>
       <div class="sub">${orc.cards_custo_concluidos||0} cards concluídos</div>
       <div class="sub dot amber">${pdfBrl(D.custoMedioCard,2)} por card (média)</div></div>
-    <div class="pdf-kpi"><div class="lbl">Mão de Obra + Material</div><div class="val unit">${pdfBrl(orc.mao_obra_mes||0,2)}</div>
-      <div class="sub">M.obra: ${pdfBrl(orc.mao_obra_mes||0,2)} | Mat.: ${pdfBrl(orc.material_mes||0,2)}</div>
-      <div class="sub">pós-obra incluída</div></div>
+    <div class="pdf-kpi"><div class="lbl">Mão de Obra</div><div class="val unit">${pdfBrl(orc.mao_obra_mes||0,2)}</div>
+      <div class="sub">pós-obra incluída</div>
+      <div class="sub">Material: ${pdfBrl(orc.material_mes||0,2)}</div></div>
     <div class="pdf-kpi"><div class="lbl">Saldo do Mês</div><div class="val ${D.saldoOrc>=0?'green':'red'}">${pdfBrlK(Math.abs(D.saldoOrc))}</div>
       <div class="sub">Realizado vs. orçado</div>
       <div class="sub dot ${D.saldoOrc>=0?'good':'warn'}">${D.saldoOrc>=0?'saldo positivo':'saldo negativo'}</div></div>
-    <div class="pdf-kpi"><div class="lbl">Economia vs. Inicial</div><div class="val unit">${pdfBrlK((orc.inicial_mes||0)-(orc.orcado_mes||0))}</div>
-      <div class="sub">Orçado inicial: ${pdfBrlK(orc.inicial_mes||0)}</div>
-      <div class="sub dot good">após redução aprovada</div></div>
+    <div class="pdf-kpi"><div class="lbl">Economia vs. Inicial</div><div class="val ${(orc.realizado_mes||0)<=(orc.inicial_mes||0)?'green':'red'}">${pdfBrlK((orc.inicial_mes||0)-(orc.realizado_mes||0))}</div>
+      <div class="sub">Realizado: ${pdfBrlK(orc.realizado_mes||0)}</div>
+      <div class="sub">Inicial: ${pdfBrlK(orc.inicial_mes||0)}</div></div>
   </div>
   <div class="pdf-status-areas">
     <div class="pdf-section-title">Status das Áreas</div>
@@ -876,16 +877,15 @@ function buildOperacionalPdfHtml(dados, textos){
       <div class="sub">${pdfPct(D.slaViagens,0)} das avaliadas</div></div>
     <div class="pdf-kpi"><div class="lbl">SLA Viagens</div><div class="val green">${pdfPct(D.slaViagens,0)}</div>
       <div class="sub dot good">Meta: ≥ ${D.o.config.meta_sla_viagens}% ✓</div></div>
-    <div class="pdf-kpi"><div class="lbl">Acumulado</div><div class="val green">${pdfPct(D.slaViagensAcum,1)}</div>
-      <div class="sub">${D.noPrazoEvo}/${D.totalEvo} no prazo</div></div>
+
   </div>
   <div class="pdf-section-title">Orçamento &amp; Acumulado</div>
   <div class="pdf-kpi-grid cols3">
     <div class="pdf-kpi"><div class="lbl">Realizado</div><div class="val unit">${pdfBrlK(orc.realizado_mes||0)}</div>
       <div class="sub">Orçado: ${pdfBrlK(orc.orcado_mes||0)}</div>
       <div class="sub dot ${D.saldoOrc>=0?'good':'warn'}">${D.saldoOrc>=0?'Saldo':'Excedente'}: ${pdfBrlK(Math.abs(D.saldoOrc))}</div></div>
-    <div class="pdf-kpi"><div class="lbl">Orçado Inicial</div><div class="val unit">${pdfBrlK(orc.inicial_mes||0)}</div>
-      <div class="sub">Orç. c/ redução: ${pdfBrlK(orc.orcado_mes||0)}</div></div>
+    <div class="pdf-kpi"><div class="lbl">Orçado c/ Redução</div><div class="val unit">${pdfBrlK(orc.orcado_mes||0)}</div>
+      <div class="sub">Inicial: ${pdfBrlK(orc.inicial_mes||0)}</div></div>
     <div class="pdf-kpi"><div class="lbl">Consumo Acum.</div><div class="val green">${pdfPct(D.consumoRealPct,0)}</div>
       <div class="sub">${pdfBrlK(orc.consumo_acumulado_valor||0)} de ${pdfBrlK(orc.anual||0)}</div></div>
   </div>

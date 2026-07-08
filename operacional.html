@@ -349,7 +349,7 @@ function renderHeader(){
 
 function renderManut(){
   const m = DADOS.manutencao;
-  const total = m.encerrados_no_prazo + m.encerrados_atrasados + m.abertos_no_prazo + m.abertos_atrasados;
+  const total = m.encerrados_no_prazo + m.encerrados_atrasados + m.abertos_no_prazo + m.abertos_atrasados + (m.cancelados||0);
   const enc_total = m.encerrados_no_prazo + m.encerrados_atrasados;
   const sla = enc_total>0 ? (m.encerrados_no_prazo/enc_total)*100 : 0;
   const meta = DADOS.config.meta_sla_manutencao;
@@ -408,7 +408,6 @@ function renderManut(){
 function renderViag(){
   const v = DADOS.viagens;
   const meta = DADOS.config.meta_sla_viagens;
-  // denominador = no_prazo + atrasados_encerrados (inclui concluídas fora do SLA)
   const denomViag = v.concluidos_no_prazo + (v.atrasados_encerrados||0);
   const sla = denomViag>0 ? (v.concluidos_no_prazo/denomViag)*100 : 0;
 

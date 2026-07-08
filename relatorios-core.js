@@ -1,5 +1,5 @@
 /* Garante que XLSX está disponível no navegador (CDN) e no Node (require). */
-if (typeof XLSX === 'undefined' && typeof require !== 'undefined') { XLSX = require('xlsx'); }
+if (typeof XLSX === 'undefined' && typeof require !== 'undefined') { var XLSX = require('xlsx'); }
 
 /* ═══════════════════════════════════════════════════════════════════════
    relatorios-core.js — Hype Coworking · Facilities
@@ -379,14 +379,18 @@ function gerarTextoManutencao(dados){
 function gerarTextoViagens(dados){
   const v = dados.operacional.viagens;
   const meta = dados.operacional.config.meta_sla_viagens;
-  const sla = v.concluidos_avaliados>0 ? (v.concluidos_no_prazo/v.concluidos_avaliados*100) : 0;
+  // Denominador = concluídas no prazo + concluídas com atraso.
+  // Usar concluidos_avaliados como denominador excluía as atrasadas encerradas
+  // e produzia 100% mesmo quando havia viagens fora do SLA.
+  const denomViagens = v.concluidos_no_prazo + v.atrasados_encerrados;
+  const sla = denomViagens>0 ? (v.concluidos_no_prazo/denomViagens*100) : 0;
   const atingiuMeta = sla >= meta;
   const gap = sla - meta;
   const titulo = `Viagens — SLA em ${pct(sla,0)}`;
   let texto = `${v.total} viagens no período, ${v.concluidos} concluídas`;
   if(v.cancelados>0) texto += `, ${v.cancelados} canceladas`;
   texto += `. `;
-  texto += `${v.concluidos_no_prazo}/${v.concluidos_avaliados} avaliadas no prazo`;
+  texto += `${v.concluidos_no_prazo}/${denomViagens} avaliadas no prazo`;
   texto += atingiuMeta ? `. Meta de ${pct(meta,0)} ${Math.abs(gap)<0.5?'atingida':'superada'}.` : `, abaixo da meta de ${pct(meta,0)}.`;
   // acumulado do ano
   const evo = v.evolucao;
@@ -602,7 +606,8 @@ function calcPdfData(dados){
   const slaManut = encTotal>0 ? (m.encerrados_no_prazo/encTotal*100) : 0;
   const totalCardsManut = encTotal + m.abertos_no_prazo + m.abertos_atrasados;
 
-  const slaViagens = v.concluidos_avaliados>0 ? (v.concluidos_no_prazo/v.concluidos_avaliados*100) : 0;
+  const denomViagensPdf = v.concluidos_no_prazo + v.atrasados_encerrados;
+  const slaViagens = denomViagensPdf>0 ? (v.concluidos_no_prazo/denomViagensPdf*100) : 0;
   const totalEvo = (v.evolucao||[]).reduce((s,x)=>s+x.total,0);
   const noPrazoEvo = (v.evolucao||[]).reduce((s,x)=>s+x.no_prazo,0);
   const slaViagensAcum = totalEvo>0 ? (noPrazoEvo/totalEvo*100) : 0;
